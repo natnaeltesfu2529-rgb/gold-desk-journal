@@ -1,0 +1,1244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#161A1F">
+<title>Gold Desk Journal</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23D9B45A'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' text-anchor='middle' fill='%2314110A'%3EAu%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: sticky top nav, one centred working column (max 1240px); cards on a graphite ground, gold for action, blue = profit, orange = loss */
+:root{
+  --bg:#0E1013; --surface:#161A1F; --surface2:#1C2128; --line:#262B33; --line2:#363D47;
+  --fg:#ECE9E2; --soft:#C9CBD0; --muted:#A3A6AD;
+  --gold:#D9B45A; --gold-hi:#F0CF7E; --gold-ink:#14110A; --gold-wash:#2A2415;
+  --pos:#6CB4EE; --pos-wash:#152535; --neg:#F0904A; --neg-wash:#2E1D11; --ok:#7FD3A3; --ok-wash:#12241A;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html{-webkit-text-size-adjust:100%}
+.linkbtn{font:inherit;background:none;border:0;padding:0;color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:hover{color:var(--gold-hi)}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.5;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+a{color:var(--gold)}a:hover{color:var(--gold-hi)}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono,.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:20px;min-height:60px;flex-wrap:wrap;padding-block:8px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:-.01em;font-size:17px;white-space:nowrap}
+.brand-mark{width:26px;height:26px;border-radius:6px;background:var(--gold);display:grid;place-items:center;color:var(--gold-ink);font-family:var(--mono);font-size:12px;font-weight:600}
+.nav{display:flex;gap:4px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav a{color:var(--muted);text-decoration:none;padding:0 14px;min-height:40px;display:inline-flex;align-items:center;border-radius:8px;font-weight:500;white-space:nowrap}
+.nav a:hover{color:var(--fg);background:var(--surface2)}
+.nav a[aria-current="page"]{color:var(--fg);background:var(--surface2);box-shadow:inset 0 -2px 0 var(--gold)}
+.mode{font-size:12px;color:var(--muted);white-space:nowrap}
+.mode b{color:var(--ok);font-weight:500}
+
+main{padding-block:28px 96px}
+.banner{border-radius:10px;padding:12px 16px;font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:space-between;margin-bottom:20px}
+.banner.demo{background:var(--gold-wash);border:1px solid #5A4A22;color:var(--gold-hi)}
+.banner.warn{background:var(--neg-wash);border:1px solid #6A4123;color:var(--neg)}
+
+.page-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:24px}
+.page-head h1{font-size:32px;font-weight:700;letter-spacing:-.02em}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:0 0 6px}
+.guide{color:var(--muted);font-size:14px;margin:6px 0 0;max-width:70ch}
+
+.stack{display:flex;flex-direction:column;gap:20px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px;min-width:0}
+.card h2{font-size:18px;font-weight:600}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.card-head .hint{font-size:13px;color:var(--muted)}
+.sec-title{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;margin:8px 0 -4px}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile .k{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.tile .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:600;line-height:1.2}
+.tile .s{font-size:12px;color:var(--muted)}
+.pos{color:var(--pos)}.neg{color:var(--neg)}.okc{color:var(--ok)}.goldc{color:var(--gold)}.mut{color:var(--muted)}
+
+/* buttons + inputs */
+.btn{font:inherit;font-weight:500;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid var(--line2);background:var(--surface2);color:var(--fg);cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:#56606D;color:var(--fg)}
+.btn.primary{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);font-weight:600}
+.btn.primary:hover{background:var(--gold-hi)}
+.btn.small{min-height:36px;padding:0 12px;font-size:14px}
+.btn.danger{color:var(--neg);border-color:#6A4123;background:transparent}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.lbl{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.in{width:100%;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--fg);padding:9px 12px;font:inherit;font-size:15px;min-height:44px}
+.in:focus{outline:2px solid var(--gold);outline-offset:0;border-color:transparent}
+.in.num{font-family:var(--mono)}
+textarea.in{min-height:84px;resize:vertical;line-height:1.5}
+.fields{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))}
+.fields.wide{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.err{color:var(--neg);font-size:13px}
+
+/* segmented radios + chips */
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.seg span{display:inline-flex;align-items:center;justify-content:center;min-height:42px;min-width:44px;padding:0 14px;border-radius:9px;border:1px solid var(--line2);background:var(--bg);color:var(--fg);font-size:14px}
+.seg input:checked+span{background:var(--gold);border-color:var(--gold);color:var(--gold-ink);font-weight:600}
+.seg input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px}
+.seg.bad input:checked+span{background:var(--neg-wash);border-color:var(--neg);color:var(--neg)}
+.seg.periods span{min-height:36px}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:11px 0;border-top:1px solid var(--line);cursor:pointer;line-height:1.45}
+.chk input{width:20px;height:20px;margin:1px 0 0;accent-color:var(--gold);flex:none}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;margin:0 -4px}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 8px 8px;white-space:nowrap}
+.tbl td{padding:10px 8px;border-top:1px solid var(--line);vertical-align:middle}
+.tbl td.r,.tbl th.r{text-align:right}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--surface2)}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid var(--line2);color:var(--soft);white-space:nowrap}
+.pill.win{color:var(--pos);border-color:#2D5272;background:var(--pos-wash)}
+.pill.loss{color:var(--neg);border-color:#6A4123;background:var(--neg-wash)}
+.pill.open{color:var(--gold);border-color:#5A4A22;background:var(--gold-wash)}
+.pill.miss{color:var(--muted)}
+.tag{display:inline-block;font-size:12px;color:var(--neg);margin-right:6px}
+
+/* bars */
+.bars{display:flex;flex-direction:column;gap:2px}
+.bar-row{display:grid;grid-template-columns:minmax(90px,1.2fr) 44px 50px 2fr 70px;gap:10px;align-items:center;font-size:13px;padding:7px 0;border-top:1px solid var(--line)}
+.bar-row:first-child{border-top:0}
+.bar-row .lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{position:relative;height:14px;background:var(--bg);border-radius:4px}
+.bar-track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--line2)}
+.bar-fill{position:absolute;top:0;bottom:0;border-radius:3px}
+.bar-head{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:0;padding-bottom:2px}
+
+/* equity */
+.eq svg{width:100%;height:auto;display:block}
+.eq text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .dow{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.06em;text-transform:uppercase}
+.cal .day{min-height:64px;border-radius:8px;background:var(--bg);border:1px solid var(--line);padding:6px 8px;display:flex;flex-direction:column;justify-content:space-between;font-size:12px;color:var(--muted)}
+.cal .day b{font-family:var(--mono);font-size:13px;font-weight:600}
+.cal .day.out{opacity:.3}
+.cal .day.today{border-color:var(--gold)}
+
+/* routine */
+.routine{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+.step{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);text-decoration:none;color:var(--fg)}
+.step:hover{border-color:var(--line2);color:var(--fg)}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--line2);flex:none;margin-top:1px;display:grid;place-items:center}
+.step.done .dot{background:var(--ok);border-color:var(--ok)}
+.step.done .dot::after{content:"";width:6px;height:10px;border:solid var(--gold-ink);border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.step .t{font-weight:600;font-size:14px}
+.step .d{font-size:13px;color:var(--muted)}
+.alerts{display:flex;flex-direction:column;gap:8px}
+.alert{padding:10px 14px;border-radius:8px;font-size:14px}
+.alert.bad{background:var(--neg-wash);color:var(--neg)}
+.alert.good{background:var(--ok-wash);color:var(--ok)}
+.alert.info{background:var(--surface2);color:var(--soft)}
+
+.insights{display:flex;flex-direction:column;gap:10px}
+.ins{display:grid;grid-template-columns:8px 1fr;gap:12px;align-items:stretch;font-size:14px;color:var(--soft)}
+.ins i{border-radius:4px;background:var(--line2)}
+.ins.good i{background:var(--pos)}.ins.bad i{background:var(--neg)}.ins.gold i{background:var(--gold)}
+
+.empty{text-align:center;padding:48px 20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty h2{font-size:22px}
+.empty p{color:var(--muted);max-width:52ch;margin:0}
+
+.verdict{border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.verdict.go{background:var(--ok-wash);border:1px solid #3E8E63}
+.verdict.no{background:var(--neg-wash);border:1px solid #8A5328}
+.verdict .big{font-family:var(--mono);font-size:26px;font-weight:600}
+.verdict.go .big{color:var(--ok)}.verdict.no .big{color:var(--neg)}
+.phase{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.phase .n{font-family:var(--mono);color:var(--gold);font-size:18px}
+.phase h2{font-size:22px}
+.phase .hint{font-size:13px;color:var(--muted)}
+fieldset{border:0;padding:0;margin:0;min-width:0}
+legend{padding:0}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.calc .tile{background:var(--bg)}
+.coach{white-space:pre-wrap;font-size:14.5px;line-height:1.6;color:var(--soft);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:16px 18px;max-height:520px;overflow:auto}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:10px;font-weight:500;font-size:14px;z-index:20;max-width:calc(100% - 32px)}
+.split{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.weeknav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.weeknav .cur{font-family:var(--mono);font-size:14px;color:var(--soft);padding:0 6px}
+@media (max-width:640px){
+  .page-head h1{font-size:26px}
+  .bar-row{grid-template-columns:minmax(70px,1fr) 34px 44px 1.4fr 60px;gap:6px;font-size:12px}
+  .cal .day{min-height:48px;padding:4px}
+  .cal .day span{display:none}
+  .mode{display:none}
+}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="brand-mark">Au</span>Gold Desk Journal</div>
+    <nav class="nav" aria-label="Journal sections">
+      <a href="#dashboard">Dashboard</a>
+      <a href="#log">Log trade</a>
+      <a href="#journal">Trades</a>
+      <a href="#daily">Daily</a>
+      <a href="#weekly">Weekly</a>
+      <a href="#monthly">Monthly</a>
+      <a href="#setup">Setup</a>
+    </nav>
+    <span class="mode" id="mode">Connecting…</span>
+  </div>
+</header>
+<main class="wrap">
+  <div id="banner"></div>
+  <div id="view" aria-live="polite"></div>
+</main>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(() => {
+'use strict';
+/* ---------- defaults ---------- */
+const DEF = {
+  startBalance: '', currency: '$', riskPct: 1, maxTrades: 3, maxDailyLoss: 2, maxConsec: 2, maxDD: 10,
+  setups: ['RBR demand retest','DBR demand retest','DBD supply retest','RBD supply retest','Flip: supply → demand','Flip: demand → supply'],
+  mistakes: ['Entered during formation','Chased — no retest','Against HTF bias','Moved stop wider','Cut winner early','Oversized','Traded into news','Revenge trade','Over daily limit','Off-watchlist symbol'],
+  checklist: ['HTF bias (D1/H4) agrees with my direction','Zone is fresh — untested since it formed','Price is retesting the zone, not still forming it','Planned R:R is at least 1:2','No high-impact news within 30 minutes','Risk is within plan and daily loss limit not hit','Emotional state is 3 or lower'],
+  symbols: { gold: 'XAUUSD', fx: 'EURUSD, GBPUSD, USDJPY, AUDUSD', crypto: 'BTCUSDT, ETHUSDT, SOLUSDT' }
+};
+const MARKETS = { gold: 'Gold', fx: 'FX pair', crypto: 'Crypto' };
+const SESSIONS = ['Asia','London','London–NY overlap','New York'];
+const GRADES = ['A+','A','B','C','F'];
+const GOOD_GRADES = ['A+','A','B'];
+const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+const S = {
+  trades: [], days: {}, weeks: {}, months: {}, settings: { ...DEF },
+  loaded: { trades: false }, demo: false, view: 'dashboard', period: 'month',
+  editId: null, dirty: false, day: null, week: null, month: null,
+  jf: { period: 'all', market: 'all', outcome: 'all', setup: 'all' }
+};
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = (v) => { if (v === '' || v == null) return null; const x = parseFloat(String(v).replace(/,/g, '')); return isFinite(x) ? x : null; };
+const fin = (x) => x != null && isFinite(x);
+const sign = (x) => x > 0 ? '+' : x < 0 ? '−' : '';
+const fR = (x, d = 2) => fin(x) ? sign(x) + Math.abs(x).toFixed(d) + 'R' : '—';
+const fM = (x) => fin(x) ? sign(x) + S.settings.currency + Math.abs(x).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+const fMoney = (x) => fin(x) ? S.settings.currency + x.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+const fP = (x) => fin(x) ? (x * 100).toFixed(0) + '%' : '—';
+const fN = (x, d = 2) => fin(x) ? x.toFixed(d) : '—';
+const tone = (x) => !fin(x) ? '' : x > 0 ? 'pos' : x < 0 ? 'neg' : '';
+const pad = (n) => String(n).padStart(2, '0');
+const ymd = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const parseD = (s) => { const [y, m, d] = String(s).split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1); };
+const today = () => ymd(new Date());
+const addDays = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return ymd(d); };
+const weekStart = (s) => { const d = parseD(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); };
+const isoWeek = (s) => { const d = parseD(s); const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = t.getUTCFullYear(); const wk = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7); return y + '-W' + pad(wk); };
+const monthKey = (s) => String(s).slice(0, 7);
+const addMonths = (mk, n) => { const [y, m] = mk.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return d.getFullYear() + '-' + pad(d.getMonth() + 1); };
+const fDate = (s, o) => parseD(s).toLocaleDateString('en-GB', o || { weekday: 'short', day: 'numeric', month: 'short' });
+const fMonth = (mk) => parseD(mk + '-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+const dowIdx = (s) => (parseD(s).getDay() + 6) % 7;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const list = (v) => Array.isArray(v) ? v : String(v || '').split(/\n|,/).map((x) => x.trim()).filter(Boolean);
+
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; }, 2600);
+}
+
+/* session from open time, East Africa Time (UTC+3), Nov–Mar hours */
+function autoSession(time) {
+  if (!time) return '';
+  const h = parseInt(time.split(':')[0], 10);
+  if (h < 3 || h >= 20) return 'New York';
+  if (h < 11) return 'Asia';
+  if (h < 16) return 'London';
+  return 'London–NY overlap';
+}
+
+/* ---------- trade maths ---------- */
+function calc(t) {
+  const long = t.dir !== 'short';
+  const pe = num(t.entry), st = num(t.stop), tg = num(t.target), ex = num(t.exit);
+  const fill = num(t.fill) ?? pe;
+  const dist = pe != null && st != null && pe !== st ? Math.abs(pe - st) : null;
+  const rr = dist && tg != null ? Math.abs(tg - pe) / dist : null;
+  const risk = num(t.riskAmt);
+  const pnlIn = num(t.pnl);
+  let r = null;
+  if (pnlIn != null && risk) r = pnlIn / risk;
+  else if (ex != null && fill != null && st != null && fill !== st) { const d = Math.abs(fill - st); r = long ? (ex - fill) / d : (fill - ex) / d; }
+  const pnl = pnlIn != null ? pnlIn : (r != null && risk != null ? r * risk : null);
+  const missed = t.kind === 'missed';
+  const closed = !missed && r != null;
+  const outcome = missed ? 'Missed' : r == null ? 'Open' : r > 0.1 ? 'Win' : r < -0.1 ? 'Loss' : 'BE';
+  let hold = null;
+  if (t.openTime && t.closeTime) { const [a, b] = t.openTime.split(':').map(Number), [c, d] = t.closeTime.split(':').map(Number); hold = (c * 60 + d) - (a * 60 + b); if (hold < 0) hold += 1440; }
+  const session = t.session && t.session !== 'Auto' ? t.session : autoSession(t.openTime) || '—';
+  return { dist, rr, r, pnl, risk, closed, outcome, missed, hold, session };
+}
+const byTime = (a, b) => (a.date + (a.openTime || '')).localeCompare(b.date + (b.openTime || ''));
+
+function stats(trades) {
+  const L = trades.filter((t) => t._.closed).slice().sort(byTime);
+  const s = { n: L.length, w: 0, l: 0, be: 0, gw: 0, gl: 0, net: 0, pnl: 0, graded: 0, good: 0, mistR: 0, mistN: 0, dd: 0, best: null, worst: null, curStreak: 0, curType: '', maxW: 0, maxL: 0, rrSum: 0, rrN: 0, curve: [], holdSum: 0, holdN: 0 };
+  let cum = 0, peak = 0, run = 0, runType = '';
+  for (const t of L) {
+    const r = t._.r;
+    if (r > 0.1) { s.w++; s.gw += r; } else if (r < -0.1) { s.l++; s.gl += -r; } else { s.be++; if (r > 0) s.gw += r; else s.gl += -r; }
+    if (fin(t._.pnl)) s.pnl += t._.pnl;
+    if (t.grade) { s.graded++; if (GOOD_GRADES.includes(t.grade)) s.good++; }
+    if ((t.mistakes || []).length) { s.mistR += r; s.mistN++; }
+    if (fin(t._.rr)) { s.rrSum += t._.rr; s.rrN++; }
+    if (fin(t._.hold)) { s.holdSum += t._.hold; s.holdN++; }
+    cum += r; peak = Math.max(peak, cum); s.dd = Math.max(s.dd, peak - cum);
+    s.curve.push({ y: cum, t });
+    if (!s.best || r > s.best._.r) s.best = t;
+    if (!s.worst || r < s.worst._.r) s.worst = t;
+    const ty = r > 0.1 ? 'W' : r < -0.1 ? 'L' : '';
+    if (ty && ty === runType) run++; else if (ty) { run = 1; runType = ty; }
+    if (runType === 'W') s.maxW = Math.max(s.maxW, run); if (runType === 'L') s.maxL = Math.max(s.maxL, run);
+  }
+  s.curStreak = run; s.curType = runType;
+  s.net = s.gw - s.gl;
+  s.wr = s.n ? s.w / s.n : null;
+  s.avgW = s.w ? s.gw / s.w : null;
+  s.avgL = s.l ? s.gl / s.l : null;
+  s.exp = s.n ? s.net / s.n : null;
+  s.pf = s.gl > 0 ? s.gw / s.gl : (s.gw > 0 ? Infinity : null);
+  s.adh = s.graded ? s.good / s.graded : null;
+  s.avgRR = s.rrN ? s.rrSum / s.rrN : null;
+  s.avgHold = s.holdN ? s.holdSum / s.holdN : null;
+  s.cleanNet = s.net - s.mistR;
+  return s;
+}
+function groupBy(trades, keyFn) {
+  const m = new Map();
+  for (const t of trades) { if (!t._.closed) continue; const ks = [].concat(keyFn(t)); for (const k of ks) { if (k == null || k === '') continue; if (!m.has(k)) m.set(k, []); m.get(k).push(t); } }
+  return Array.from(m, ([k, v]) => ({ key: k, s: stats(v) }));
+}
+const closedOf = (arr) => arr.filter((t) => t._.closed);
+const balanceNow = () => { const b = num(S.settings.startBalance); if (b == null) return null; return b + S.trades.reduce((a, t) => a + (t._.closed && fin(t._.pnl) ? t._.pnl : 0), 0); };
+
+function inPeriod(t, p) {
+  const d = t.date || '';
+  const td = today();
+  if (p === 'today') return d === td;
+  if (p === 'week') return weekStart(d) === weekStart(td);
+  if (p === 'month') return monthKey(d) === monthKey(td);
+  if (p === 'quarter') return d >= addDays(td, -90);
+  if (p === 'year') return d.slice(0, 4) === td.slice(0, 4);
+  return true;
+}
+const PERIODS = [['week', 'This week'], ['month', 'This month'], ['quarter', '90 days'], ['year', 'This year'], ['all', 'All time']];
+
+/* ---------- storage ---------- */
+const CFG = window.GDJ_CONFIG || {};
+const API = String(CFG.API_URL || '').replace(/\/$/, '');
+const sb = (window.supabase && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY)
+  ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true } })
+  : null;
+
+const store = {
+  mode: 'loading', user: null, coachEnabled: false,
+  async token() { const { data } = await sb.auth.getSession(); return data.session ? data.session.access_token : null; },
+  async api(path, opts = {}) {
+    const tok = await this.token();
+    if (!tok) { this.mode = 'signedout'; render(); throw new Error('Sign in required'); }
+    const r = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok, ...(opts.headers || {}) } });
+    let j = null; try { j = await r.json(); } catch (e) { j = null; }
+    if (r.status === 401) { this.mode = 'signedout'; render(); }
+    if (!r.ok) throw new Error((j && j.error) || 'Request failed (' + r.status + ')');
+    return j;
+  },
+  async init() {
+    if (!sb || !API) { this.mode = 'misconfigured'; render(); return; }
+    const { data } = await sb.auth.getSession();
+    sb.auth.onAuthStateChange((evt, session) => {
+      if (evt === 'PASSWORD_RECOVERY') { S.recovery = true; render(); return; }
+      if (evt === 'SIGNED_OUT') { this.user = null; this.mode = 'signedout'; S.liveTrades = []; S.trades = []; S.days = {}; S.weeks = {}; S.months = {}; S.settings = { ...DEF }; render(); }
+      else if (evt === 'SIGNED_IN' && session && (!this.user || this.user.id !== session.user.id)) { this.user = session.user; this.load(); }
+    });
+    if (data.session) { this.user = data.session.user; await this.load(); }
+    else { this.mode = 'signedout'; S.loaded.trades = true; render(); }
+  },
+  async load() {
+    this.mode = 'cloud'; S.loaded.trades = false; render();
+    try {
+      const j = await this.api('/api/journal');
+      S.liveTrades = (j.trades || []).map(prep); if (!S.demo) S.trades = S.liveTrades;
+      S.days = j.days || {}; S.weeks = j.weeks || {}; S.months = j.months || {};
+      if (j.settings) S.settings = { ...DEF, ...j.settings, symbols: { ...DEF.symbols, ...(j.settings.symbols || {}) } };
+      S.loaded.trades = true; onData();
+      this.api('/api/coach/status').then((s) => { this.coachEnabled = !!(s && s.enabled); }).catch(() => {});
+    } catch (e) {
+      S.loaded.trades = true;
+      if (this.mode !== 'signedout') { toast('Could not load your journal — ' + e.message); this.mode = 'offline'; render(); }
+    }
+  },
+  async save(col, id, data) {
+    if (S.demo) { toast('Example mode — exit it to save your own data'); return false; }
+    try {
+      if (col === 'config') await this.api('/api/settings', { method: 'PUT', body: JSON.stringify(data) });
+      else if (col === 'trades') await this.api('/api/trades/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(data) });
+      else await this.api('/api/' + col + '/' + encodeURIComponent(id), { method: 'PUT', body: JSON.stringify(data) });
+      if (col === 'trades') { const t = prep({ ...data, id }); const i = S.liveTrades.findIndex((x) => x.id === id); if (i >= 0) S.liveTrades[i] = t; else S.liveTrades.push(t); S.trades = S.liveTrades; }
+      else if (col === 'config') S.settings = { ...DEF, ...data };
+      else S[col][id] = data;
+      return true;
+    } catch (e) { toast('Save failed — ' + e.message); return false; }
+  },
+  async remove(col, id) {
+    if (S.demo) { toast('Example mode — nothing to delete'); return false; }
+    try {
+      await this.api('/api/trades/' + encodeURIComponent(id), { method: 'DELETE' });
+      S.liveTrades = S.liveTrades.filter((t) => t.id !== id); S.trades = S.liveTrades; return true;
+    } catch (e) { toast('Delete failed — ' + e.message); return false; }
+  }
+};
+function prep(t) { t._ = calc(t); return t; }
+function strip(t) { const o = { ...t }; delete o._; delete o.id; return o; }
+
+function renderMode() {
+  const m = $('#mode');
+  if (S.demo) m.innerHTML = 'Example data';
+  else if (store.mode === 'cloud' && store.user) m.innerHTML = `<b>●</b> ${esc(store.user.email || 'Signed in')} · <button class="linkbtn" data-act="signout">Sign out</button>`;
+  else if (store.mode === 'offline') m.textContent = 'Offline';
+  else m.textContent = '';
+  const b = $('#banner');
+  if (S.demo) b.innerHTML = '<div class="banner demo"><span>You are looking at <b>example trades</b> to see how the analysis works. Nothing here is saved or real.</span><button class="btn small" data-act="demo-off">Back to my journal</button></div>';
+  else if (store.mode === 'offline') b.innerHTML = '<div class="banner warn"><span>Can’t reach the journal server. The free Render plan sleeps when idle — wait 30–60 seconds, then retry.</span><button class="btn small" data-act="retry">Retry</button></div>';
+  else b.innerHTML = '';
+  $('.nav').hidden = store.mode === 'signedout' || store.mode === 'misconfigured';
+}
+
+function loginView() {
+  if (store.mode === 'misconfigured') return `<div class="card empty"><h2>Setup needed</h2><p>This deployment is missing SUPABASE_URL, SUPABASE_ANON_KEY or API_URL. Add them in Vercel → Settings → Environment Variables and redeploy.</p></div>`;
+  const signup = S.authMode === 'signup';
+  return `<div class="card" style="max-width:440px;margin:24px auto">
+    <p class="eyebrow">Gold · FX · Crypto</p><h1 style="font-size:28px;margin-bottom:6px">${signup ? 'Create your journal' : 'Sign in'}</h1>
+    <p class="guide" style="margin-bottom:20px">${signup ? 'Your trades are private to your account.' : 'Welcome back. Plan, log, review.'}</p>
+    <form id="authForm" class="stack" style="gap:14px" novalidate>
+      ${fld('email', 'Email', '<input id="email" name="email" class="in" type="email" autocomplete="email" required>')}
+      ${fld('password', 'Password', `<input id="password" name="password" class="in" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" minlength="8" required>`)}
+      <span class="err" id="authErr" role="alert"></span>
+      <button class="btn primary" type="submit" style="justify-content:center">${signup ? 'Create account' : 'Sign in'}</button>
+      <div class="split" style="font-size:14px"><button type="button" class="linkbtn" data-act="auth-toggle">${signup ? 'I already have an account' : 'Create an account'}</button>${signup ? '' : '<button type="button" class="linkbtn" data-act="auth-reset">Forgot password?</button>'}</div>
+    </form></div>`;
+}
+
+async function handleAuth(f) {
+  const email = f.email.value.trim(), password = f.password.value, err = $('#authErr');
+  if (!email || password.length < 8) { err.textContent = 'Enter your email and a password of at least 8 characters.'; return; }
+  err.textContent = '';
+  const btn = f.querySelector('button[type=submit]'); btn.disabled = true;
+  try {
+    if (S.authMode === 'signup') {
+      const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.origin } });
+      if (error) throw error;
+      if (!data.session) { err.style.color = 'var(--ok)'; err.textContent = 'Check your email and click the confirmation link, then sign in.'; S.authMode = 'signin'; }
+    } else {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    }
+  } catch (e) { err.style.color = ''; err.textContent = e.message || 'Sign-in failed'; }
+  finally { btn.disabled = false; }
+}
+
+function onData() {
+  if (S.demo) { /* example data is static */ }
+  if (S.dirty) { refreshLive(); return; }
+  render();
+}
+
+/* ---------- example data (not saved) ---------- */
+function makeDemo() {
+  let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const pick = (a) => a[Math.floor(rnd() * a.length)];
+  const out = []; let d = addDays(today(), -48);
+  const syms = { gold: ['XAUUSD'], fx: ['EURUSD', 'GBPUSD', 'USDJPY'], crypto: ['BTCUSDT', 'ETHUSDT'] };
+  for (let i = 0; i < 60; i++) {
+    d = addDays(d, rnd() < 0.55 ? 0 : 1); if (dowIdx(d) > 4 && rnd() < 0.8) d = addDays(d, 7 - dowIdx(d));
+    if (d > today()) break;
+    const market = rnd() < 0.6 ? 'gold' : rnd() < 0.6 ? 'fx' : 'crypto';
+    const setup = pick(DEF.setups);
+    const emotion = 1 + Math.floor(rnd() * (rnd() < 0.8 ? 3 : 5));
+    const hasMist = emotion >= 3 ? rnd() < 0.6 : rnd() < 0.15;
+    const mistakes = hasMist ? [pick(DEF.mistakes)] : [];
+    const edge = (setup.includes('demand') ? 0.62 : 0.48) - (hasMist ? 0.25 : 0) + (market === 'gold' ? 0.05 : market === 'crypto' ? -0.08 : 0);
+    const win = rnd() < edge;
+    const r = win ? +(1.6 + rnd() * 1.6).toFixed(2) : (rnd() < 0.15 ? 0 : (hasMist && rnd() < 0.4 ? -1.5 : -1));
+    const h = 4 + Math.floor(rnd() * 17);
+    const grade = hasMist ? (emotion >= 4 ? 'F' : 'C') : pick(['A+', 'A', 'A', 'B']);
+    out.push(prep({ id: 'demo' + i, kind: 'taken', date: d, openTime: pad(h) + ':' + pad(Math.floor(rnd() * 60)), closeTime: pad((h + 1 + Math.floor(rnd() * 4)) % 24) + ':' + pad(Math.floor(rnd() * 60)), market, symbol: pick(syms[market]), dir: rnd() < 0.55 ? 'long' : 'short', setup, riskAmt: 100, pnl: String(r * 100), entry: '100', stop: '99', target: String(100 + 2 + rnd()), emotion: String(emotion), grade, mistakes, checks: [], lesson: '' }));
+  }
+  return out;
+}
+
+/* ---------- small renderers ---------- */
+function tile(k, v, cls, s) { return `<div class="tile"><span class="k">${k}</span><span class="v ${cls || ''}">${v}</span>${s ? `<span class="s">${s}</span>` : ''}</div>`; }
+function kpiTiles(s, compact) {
+  const pf = s.pf === Infinity ? '∞' : fN(s.pf);
+  const t = [
+    tile('Net result', fR(s.net), tone(s.net), fM(s.pnl)),
+    tile('Trades', s.n, '', `${s.w}W · ${s.l}L · ${s.be}BE`),
+    tile('Win rate', fP(s.wr), '', 'Break-even ±0.1R not counted as a win'),
+    tile('Expectancy', fR(s.exp), tone(s.exp), 'Average R per trade'),
+    tile('Profit factor', pf, s.pf == null ? '' : s.pf >= 1.5 ? 'pos' : s.pf < 1 ? 'neg' : '', 'Above 1.5 is solid'),
+    tile('Avg win / loss', `${fN(s.avgW)} / ${fN(s.avgL)}`, '', 'In R — losses should stay near 1.0'),
+    tile('Max drawdown', s.n ? '−' + s.dd.toFixed(2) + 'R' : '—', s.dd > 0 ? 'neg' : '', 'Peak-to-trough in this period'),
+    tile('Rule adherence', fP(s.adh), s.adh == null ? '' : s.adh >= 0.9 ? 'pos' : 'neg', 'A+/A/B grades — target 90%+')
+  ];
+  if (!compact) t.push(tile('Cost of mistakes', s.mistN ? fR(s.mistR) : '—', tone(s.mistR), `${s.mistN} trade${s.mistN === 1 ? '' : 's'} with a mistake tag`), tile('Streak now', s.curType ? s.curStreak + (s.curType === 'W' ? ' wins' : ' losses') : '—', s.curType === 'W' ? 'pos' : s.curType === 'L' ? 'neg' : '', `Longest: ${s.maxW}W / ${s.maxL}L`));
+  return `<div class="tiles">${t.join('')}</div>`;
+}
+
+function niceTicks(min, max, n) {
+  if (min === max) { min -= 1; max += 1; }
+  const span = max - min; const step0 = span / n; const mag = Math.pow(10, Math.floor(Math.log10(step0))); const f = step0 / mag;
+  const step = (f >= 5 ? 10 : f >= 2 ? 5 : f >= 1 ? 2 : 1) * mag;
+  const lo = Math.floor(min / step) * step, hi = Math.ceil(max / step) * step; const out = [];
+  for (let v = lo; v <= hi + step / 2; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+function equitySVG(s, h = 240) {
+  if (!s.curve.length) return '<p class="mut" style="margin:0">No closed trades in this period yet.</p>';
+  const W = 860, H = h, L = 52, R = 16, T = 14, B = 26;
+  const ys = [0, ...s.curve.map((p) => p.y)];
+  const ticks = niceTicks(Math.min(...ys), Math.max(...ys), 4);
+  const y0 = ticks[0], y1 = ticks[ticks.length - 1];
+  const n = s.curve.length;
+  const X = (i) => L + (n === 0 ? 0 : (i / n) * (W - L - R));
+  const Y = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  const pts = [[X(0), Y(0)], ...s.curve.map((p, i) => [X(i + 1), Y(p.y)])];
+  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = line + ` L${X(n).toFixed(1)} ${Y(0).toFixed(1)} L${X(0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+  const last = pts[pts.length - 1]; const end = s.curve[n - 1].y;
+  const col = end >= 0 ? 'var(--pos)' : 'var(--neg)';
+  const grid = ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v === 0 ? 'var(--line2)' : 'var(--line)'}" stroke-width="1"${v === 0 ? '' : ' stroke-dasharray="2 4"'}/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end">${v > 0 ? '+' : ''}${v}R</text>`).join('');
+  const first = s.curve[0].t.date, lastD = s.curve[n - 1].t.date;
+  return `<div class="eq"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Equity curve in R, ending at ${fR(end)}">
+    <defs><linearGradient id="eqg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${end >= 0 ? '#6CB4EE' : '#F0904A'}" stop-opacity=".28"/><stop offset="1" stop-color="${end >= 0 ? '#6CB4EE' : '#F0904A'}" stop-opacity="0"/></linearGradient></defs>
+    ${grid}<path d="${area}" fill="url(#eqg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"/>
+    <text x="${L}" y="${H - 6}">${fDate(first, { day: 'numeric', month: 'short' })}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${fDate(lastD, { day: 'numeric', month: 'short' })} · ${n} trades</text>
+  </svg></div>`;
+}
+
+function barsBlock(groups, emptyMsg, order) {
+  if (!groups.length) return `<p class="mut" style="margin:0">${emptyMsg || 'Not enough closed trades yet.'}</p>`;
+  if (order) groups.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key)); else groups.sort((a, b) => b.s.net - a.s.net);
+  const max = Math.max(1, ...groups.map((g) => Math.abs(g.s.net)));
+  const rows = groups.map((g) => {
+    const w = Math.abs(g.s.net) / max * 50; const pos = g.s.net >= 0;
+    const fill = `<span class="bar-fill" style="${pos ? 'left:50%' : 'right:50%'};width:${w}%;background:${pos ? 'var(--pos)' : 'var(--neg)'}"></span>`;
+    return `<div class="bar-row"><span class="lab" title="${esc(g.key)}">${esc(g.key)}</span><span class="num mut">${g.s.n}</span><span class="num">${fP(g.s.wr)}</span><span class="bar-track" aria-hidden="true">${fill}</span><span class="num ${tone(g.s.net)}" style="text-align:right">${fR(g.s.net, 1)}</span></div>`;
+  }).join('');
+  return `<div class="bars"><div class="bar-row bar-head"><span>Group</span><span>n</span><span>Win</span><span>Net R</span><span style="text-align:right">Total</span></div>${rows}</div>`;
+}
+function groupTable(groups, label, order) {
+  if (!groups.length) return '<p class="mut" style="margin:0">No closed trades yet.</p>';
+  if (order) groups.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key)); else groups.sort((a, b) => b.s.n - a.s.n);
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>${label}</th><th class="r">Trades</th><th class="r">Win %</th><th class="r">Net R</th><th class="r">Expectancy</th><th class="r">PF</th><th class="r">Rules</th></tr></thead><tbody>${groups.map((g) => `<tr><td>${esc(g.key)}</td><td class="r num">${g.s.n}</td><td class="r num">${fP(g.s.wr)}</td><td class="r num ${tone(g.s.net)}">${fR(g.s.net)}</td><td class="r num ${tone(g.s.exp)}">${fR(g.s.exp)}</td><td class="r num">${g.s.pf === Infinity ? '∞' : fN(g.s.pf)}</td><td class="r num">${fP(g.s.adh)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function mistakeTable(trades) {
+  const m = new Map();
+  for (const t of closedOf(trades)) for (const k of t.mistakes || []) { const o = m.get(k) || { n: 0, r: 0 }; o.n++; o.r += t._.r; m.set(k, o); }
+  if (!m.size) return '<p class="mut" style="margin:0">No mistake tags in this period. Keep it that way.</p>';
+  const rows = Array.from(m).sort((a, b) => a[1].r - b[1].r);
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Mistake</th><th class="r">Times</th><th class="r">Net R on those trades</th></tr></thead><tbody>${rows.map(([k, o]) => `<tr><td style="color:var(--neg)">${esc(k)}</td><td class="r num">${o.n}</td><td class="r num ${tone(o.r)}">${fR(o.r)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+function insights(trades) {
+  const out = []; const C = closedOf(trades);
+  if (C.length < 5) return out;
+  const s = stats(C);
+  const best = (groups, min) => groups.filter((g) => g.s.n >= min).sort((a, b) => b.s.exp - a.s.exp);
+  const setups = best(groupBy(C, (t) => t.setup), 3);
+  if (setups.length) { const g = setups[0]; if (g.s.exp > 0) out.push(['good', `Best setup: <b>${esc(g.key)}</b> — ${fR(g.s.exp)} per trade over ${g.s.n} trades (${fP(g.s.wr)} win rate).`]); const w = setups[setups.length - 1]; if (setups.length > 1 && w.s.exp < 0) out.push(['bad', `Weakest setup: <b>${esc(w.key)}</b> — ${fR(w.s.exp)} per trade over ${w.s.n} trades.${w.s.n >= 30 ? ' With 30+ trades, pause it and re-test.' : ''}`]); }
+  const sess = best(groupBy(C, (t) => t._.session), 3);
+  if (sess.length > 1) { const g = sess[0], w = sess[sess.length - 1]; out.push(['gold', `Session edge: <b>${esc(g.key)}</b> ${fR(g.s.exp)}/trade vs <b>${esc(w.key)}</b> ${fR(w.s.exp)}/trade.`]); }
+  const calm = C.filter((t) => num(t.emotion) != null && num(t.emotion) <= 2), hot = C.filter((t) => num(t.emotion) >= 3);
+  if (calm.length >= 3 && hot.length >= 3) { const a = stats(calm), b = stats(hot); out.push([b.exp < a.exp ? 'bad' : 'good', `Emotion matters: at state 1–2 you average ${fR(a.exp)}/trade; at 3+ you average ${fR(b.exp)}/trade (${hot.length} trades).`]); }
+  if (s.mistN) out.push(['bad', `Rule breaks: ${s.mistN} trades with mistakes netted ${fR(s.mistR)}. Following your rules only, the result would be ${fR(s.cleanNet)}.`]);
+  if (fin(s.avgL) && s.avgL > 1.1) out.push(['bad', `Average loss is ${fN(s.avgL)}R — above 1R means stops are being widened or entries slipped.`]);
+  if (fin(s.avgRR) && fin(s.avgW) && s.avgW < s.avgRR * 0.7) out.push(['gold', `You plan for 1:${fN(s.avgRR, 1)} on average but winners average ${fN(s.avgW)}R. Check if you are cutting winners early.`]);
+  const dows = best(groupBy(C, (t) => DOW[dowIdx(t.date)]), 3);
+  if (dows.length > 2 && dows[dows.length - 1].s.exp < 0) out.push(['bad', `Weakest day: <b>${dows[dows.length - 1].key}</b> at ${fR(dows[dows.length - 1].s.exp)}/trade.`]);
+  return out.slice(0, 6);
+}
+const insightsHTML = (arr) => arr.length ? `<div class="insights">${arr.map(([c, t]) => `<div class="ins ${c}"><i></i><span>${t}</span></div>`).join('')}</div>` : '<p class="mut" style="margin:0">Insights appear once you have at least 5 closed trades in the period.</p>';
+
+function tradeRows(trades, opts = {}) {
+  if (!trades.length) return `<p class="mut" style="margin:0">${opts.empty || 'No trades.'}</p>`;
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>Setup</th><th>Session</th><th class="r">R</th><th class="r">P&amp;L</th><th>Grade</th><th>Status</th>${opts.noMist ? '' : '<th>Mistakes</th>'}</tr></thead><tbody>${trades.map((t) => {
+    const o = t._.outcome; const cls = o === 'Win' ? 'win' : o === 'Loss' ? 'loss' : o === 'Open' ? 'open' : o === 'Missed' ? 'miss' : '';
+    return `<tr class="click" data-edit="${esc(t.id)}" tabindex="0"><td class="num">${fDate(t.date)}${t.openTime ? ' <span class="mut">' + esc(t.openTime) + '</span>' : ''}</td><td><b>${esc(t.symbol || '—')}</b></td><td>${t.dir === 'short' ? 'Short' : 'Long'}</td><td>${esc(t.setup || '—')}</td><td>${esc(t._.session)}</td><td class="r num ${tone(t._.r)}">${fR(t._.r)}</td><td class="r num ${tone(t._.pnl)}">${t._.missed ? '—' : fM(t._.pnl)}</td><td class="num">${esc(t.grade || '—')}</td><td><span class="pill ${cls}">${o}</span></td>${opts.noMist ? '' : `<td>${(t.mistakes || []).map((m) => `<span class="tag">${esc(m)}</span>`).join('') || '<span class="mut">—</span>'}</td>`}</tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+function calendar(mk, trades) {
+  const first = parseD(mk + '-01'); const start = addDays(mk + '-01', -dowIdx(mk + '-01'));
+  const byDay = {}; closedOf(trades).forEach((t) => { (byDay[t.date] = byDay[t.date] || []).push(t); });
+  const max = Math.max(1, ...Object.values(byDay).map((a) => Math.abs(a.reduce((x, t) => x + t._.r, 0))));
+  let cells = DOW.map((d) => `<div class="dow">${d}</div>`).join('');
+  const td = today();
+  for (let i = 0; i < 42; i++) {
+    const d = addDays(start, i); if (i >= 35 && monthKey(d) !== mk) break;
+    const arr = byDay[d] || []; const r = arr.reduce((x, t) => x + t._.r, 0);
+    const a = arr.length ? 0.12 + 0.5 * Math.abs(r) / max : 0;
+    const bg = arr.length ? (r >= 0 ? `rgba(108,180,238,${a.toFixed(2)})` : `rgba(240,144,74,${a.toFixed(2)})`) : '';
+    cells += `<div class="day${monthKey(d) !== mk ? ' out' : ''}${d === td ? ' today' : ''}" style="${bg ? 'background:' + bg : ''}" title="${fDate(d)}${arr.length ? ': ' + fR(r) + ', ' + arr.length + ' trades' : ''}"><span>${parseD(d).getDate()}</span>${arr.length ? `<b class="${r >= 0 ? 'pos' : 'neg'}" style="color:var(--fg)">${fR(r, 1)}</b>` : ''}</div>`;
+  }
+  void first;
+  return `<div class="cal">${cells}</div>`;
+}
+
+/* ---------- views ---------- */
+const V = {};
+
+V.dashboard = () => {
+  const P = S.period;
+  const T = S.trades.filter((t) => inPeriod(t, P));
+  const s = stats(T);
+  if (!S.loaded.trades) return `<div class="card empty"><h2>Loading your journal…</h2><p>Your trades, plans and reviews will appear here in a moment.</p></div>`;
+  const td = today(); const dayDoc = S.days[td] || {};
+  const todays = S.trades.filter((t) => t.date === td && !t._.missed);
+  const tS = stats(todays);
+  const lastWeek = isoWeek(addDays(weekStart(td), -7));
+  const lastMonth = addMonths(monthKey(td), -1);
+  const steps = [
+    [!!dayDoc.planDone, 'Pre-session plan', 'Bias, zones, news, limits', '#daily'],
+    [todays.length > 0, 'Log trades', todays.length ? `${todays.length} logged today` : 'None logged today', '#log'],
+    [!!dayDoc.recapDone, 'Daily recap', '10 minutes after your last trade', '#daily'],
+    [!!(S.weeks[lastWeek] || {}).done, 'Weekly review', `Last week · ${lastWeek}`, '#weekly'],
+    [!!(S.months[lastMonth] || {}).done, 'Monthly audit', fMonth(lastMonth), '#monthly']
+  ];
+  const st = S.settings; const alerts = [];
+  const maxT = num(st.maxTrades), maxL = num(st.maxDailyLoss), maxC = num(st.maxConsec);
+  if (maxT && todays.length >= maxT) alerts.push(['bad', `Trade limit reached: ${todays.length} of ${maxT} trades today. You are done for the day.`]);
+  if (maxL && tS.net <= -Math.abs(maxL)) alerts.push(['bad', `Daily loss limit hit: ${fR(tS.net)} (limit −${Math.abs(maxL)}R). Close the platform.`]);
+  if (maxC && tS.curType === 'L' && tS.curStreak >= maxC) alerts.push(['bad', `${tS.curStreak} losses in a row today. Your rule says stop after ${maxC}.`]);
+  if (num(dayDoc.emotion) >= 4) alerts.push(['bad', 'You rated your state 4+ this morning. No new trades today.']);
+  if (!alerts.length && todays.length) alerts.push(['good', `Within limits: ${todays.length}${maxT ? '/' + maxT : ''} trades, ${fR(tS.net)} today.`]);
+  const focus = (S.days[addDays(td, -1)] || {}).tomorrow || dayDoc.focus || (S.weeks[isoWeek(td)] || {}).focus || (S.weeks[lastWeek] || {}).focus;
+  if (focus) alerts.unshift(['info', `<b>Focus:</b> ${esc(focus)}`]);
+
+  const empty = !S.trades.length;
+  return `
+  <div class="page-head"><div><p class="eyebrow">${fDate(td, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p><h1>Dashboard</h1>
+  <p class="guide">Your routine for today, then how your trading is performing. Every number is in R (1R = the amount you risked), so gold, FX and crypto compare fairly.</p></div>
+  <a class="btn primary" href="#log">+ Log a trade</a></div>
+  <div class="stack">
+    <section class="card" aria-labelledby="rt"><div class="card-head"><h2 id="rt">Today’s routine</h2><span class="hint">Tap a step to open it</span></div>
+      <div class="routine">${steps.map(([done, t, d, h]) => `<a class="step${done ? ' done' : ''}" href="${h}"><span class="dot" aria-hidden="true"></span><span><span class="t">${t}</span><br><span class="d">${esc(d)}</span><span class="visually-hidden">${done ? ' — done' : ''}</span></span></a>`).join('')}</div>
+      ${alerts.length ? `<div class="alerts" style="margin-top:14px">${alerts.map(([c, t]) => `<div class="alert ${c}">${t}</div>`).join('')}</div>` : ''}
+    </section>
+    ${empty ? `<div class="card empty"><h2>No trades yet</h2><p>Log your first trade and this page fills with your equity curve, win rate, expectancy and where your edge is. Want to see it working first?</p><div class="row" style="justify-content:center"><a class="btn primary" href="#log">Log first trade</a><button class="btn" data-act="demo-on">Show with example trades</button></div></div>` : `
+    <div class="split"><div class="seg periods" role="radiogroup" aria-label="Period">${PERIODS.map(([k, l]) => `<label><input type="radio" name="period" value="${k}" ${k === P ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
+    <span class="mut" style="font-size:13px">${balanceNow() != null ? 'Balance now <b class="num" style="color:var(--fg)">' + fMoney(balanceNow()) + '</b>' : '<a href="#setup">Set your starting balance</a> to track $'}</span></div>
+    ${kpiTiles(s)}
+    <div class="grid g2">
+      <section class="card"><div class="card-head"><h2>Equity curve</h2><span class="hint">Cumulative R, trade by trade</span></div>${equitySVG(s)}</section>
+      <section class="card"><div class="card-head"><h2>What the numbers say</h2><span class="hint">Updated as you log</span></div>${insightsHTML(insights(T))}</section>
+    </div>
+    <div class="grid g3">
+      <section class="card"><div class="card-head"><h2>By market</h2></div>${barsBlock(groupBy(T, (t) => MARKETS[t.market] || 'Other'))}</section>
+      <section class="card"><div class="card-head"><h2>By setup</h2></div>${barsBlock(groupBy(T, (t) => t.setup || 'No setup'))}</section>
+      <section class="card"><div class="card-head"><h2>By session</h2><span class="hint">EAT</span></div>${barsBlock(groupBy(T, (t) => t._.session), null, [...SESSIONS, '—'])}</section>
+      <section class="card"><div class="card-head"><h2>By weekday</h2></div>${barsBlock(groupBy(T, (t) => DOW[dowIdx(t.date)]), null, DOW)}</section>
+      <section class="card"><div class="card-head"><h2>By direction</h2></div>${barsBlock(groupBy(T, (t) => t.dir === 'short' ? 'Short' : 'Long'))}</section>
+      <section class="card"><div class="card-head"><h2>By emotional state</h2></div>${barsBlock(groupBy(T, (t) => t.emotion ? 'State ' + t.emotion : ''), 'Rate your emotional state on each trade to see this.', ['State 1', 'State 2', 'State 3', 'State 4', 'State 5'])}</section>
+    </div>
+    <div class="grid g2">
+      <section class="card"><div class="card-head"><h2>Cost of mistakes</h2></div>${mistakeTable(T)}</section>
+      <section class="card"><div class="card-head"><h2>Symbols</h2></div>${groupTable(groupBy(T, (t) => (t.symbol || '—').toUpperCase()), 'Symbol')}</section>
+    </div>
+    <section class="card"><div class="card-head"><h2>Recent trades</h2><a href="#journal" class="hint">All trades →</a></div>${tradeRows(S.trades.slice().sort(byTime).reverse().slice(0, 8))}</section>`}
+  </div>`;
+};
+
+/* --- trade form --- */
+function optList(arr, sel, extra) { return (extra || []).concat(arr).map((o) => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(v)}" ${String(v) === String(sel ?? '') ? 'selected' : ''}>${esc(l)}</option>`; }).join(''); }
+function radios(name, opts, sel, cls) { return `<div class="seg ${cls || ''}" role="radiogroup">${opts.map((o) => { const [v, l] = Array.isArray(o) ? o : [o, o]; return `<label><input type="radio" name="${name}" value="${esc(v)}" ${String(v) === String(sel ?? '') ? 'checked' : ''}><span>${esc(l)}</span></label>`; }).join('')}</div>`; }
+function checks(name, opts, selArr, cls) { const sel = new Set(selArr || []); return `<div class="seg ${cls || ''}">${opts.map((v) => `<label><input type="checkbox" name="${name}" value="${esc(v)}" ${sel.has(v) ? 'checked' : ''}><span>${esc(v)}</span></label>`).join('')}</div>`; }
+const fld = (id, label, inner) => `<div class="field"><label for="${id}">${label}</label>${inner}</div>`;
+const inp = (id, v, type = 'text', cls = '', extra = '') => `<input id="${id}" name="${id}" class="in ${cls}" type="${type}" value="${esc(v ?? '')}" ${extra}>`;
+const ta = (id, v, ph = '') => `<textarea id="${id}" name="${id}" class="in" placeholder="${esc(ph)}">${esc(v ?? '')}</textarea>`;
+
+V.log = () => {
+  const ed = S.editId ? S.trades.find((t) => t.id === S.editId) : null;
+  const st = S.settings;
+  const bal = balanceNow();
+  const t = ed || { kind: 'taken', date: today(), market: S.lastMarket || 'gold', dir: 'long', riskPct: st.riskPct, session: 'Auto', checks: [], mistakes: [] };
+  const riskAmt = t.riskAmt ?? (bal != null && num(t.riskPct) != null ? (bal * num(t.riskPct) / 100).toFixed(2) : '');
+  const syms = list(st.symbols[t.market] || '');
+  const cl = list(st.checklist);
+  return `
+  <div class="page-head"><div><p class="eyebrow">${ed ? 'Editing trade' : 'New trade'}</p><h1>${ed ? esc((ed.symbol || 'Trade') + ' · ' + fDate(ed.date)) : 'Log a trade'}</h1>
+  <p class="guide">Fill part 1 before you enter — the checklist must say GO. Fill part 2 while in the trade and part 3 within 15 minutes of closing. Save at any stage; open trades can be finished later.</p></div>
+  ${ed ? '<button class="btn" data-act="new-trade">+ New trade instead</button>' : ''}</div>
+  <form id="tradeForm" class="stack" novalidate autocomplete="off">
+    <section class="card">
+      <div class="phase"><span class="n">01</span><h2>Before — the plan</h2><span class="hint">Before you click buy or sell</span></div>
+      <div class="stack" style="gap:18px">
+        <div class="row" style="gap:24px;align-items:flex-start">
+          <div class="field"><span class="lbl">Entry type</span>${radios('kind', [['taken', 'Trade taken'], ['missed', 'Missed setup']], t.kind)}</div>
+          <div class="field"><span class="lbl">Market</span>${radios('market', Object.entries(MARKETS), t.market)}</div>
+          <div class="field"><span class="lbl">Direction</span>${radios('dir', [['long', 'Long'], ['short', 'Short']], t.dir)}</div>
+        </div>
+        <div class="fields">
+          ${fld('date', 'Date', inp('date', t.date, 'date', 'num', 'required'))}
+          ${fld('openTime', 'Open time (EAT)', inp('openTime', t.openTime, 'time', 'num'))}
+          ${fld('symbol', 'Symbol', inp('symbol', t.symbol, 'text', 'num', `list="symlist" placeholder="${esc(syms[0] || '')}"`) + `<datalist id="symlist">${syms.map((s) => `<option value="${esc(s)}">`).join('')}</datalist>`)}
+          ${fld('setup', 'Setup', `<select id="setup" name="setup" class="in">${optList(list(st.setups).concat('Other'), t.setup)}</select>`)}
+          ${fld('session', 'Session', `<select id="session" name="session" class="in">${optList(SESSIONS, t.session, [['Auto', 'Auto from open time']])}</select>`)}
+          ${fld('htf', 'HTF bias (D1/H4)', `<select id="htf" name="htf" class="in">${optList(['Bullish', 'Bearish', 'Range'], t.htf)}</select>`)}
+          ${fld('tf', 'Entry timeframe', `<select id="tf" name="tf" class="in">${optList(['M1', 'M5', 'M15', 'M30', 'H1', 'H4'], t.tf || 'M15')}</select>`)}
+        </div>
+        <div class="fields">
+          ${fld('entry', 'Entry price', inp('entry', t.entry, 'number', 'num', 'step="any" inputmode="decimal"'))}
+          ${fld('stop', 'Stop loss', inp('stop', t.stop, 'number', 'num', 'step="any" inputmode="decimal"'))}
+          ${fld('target', 'Take profit', inp('target', t.target, 'number', 'num', 'step="any" inputmode="decimal"'))}
+          ${fld('riskPct', 'Risk %', inp('riskPct', t.riskPct, 'number', 'num', 'step="0.05" inputmode="decimal"'))}
+          ${fld('riskAmt', `Risk in ${esc(st.currency)} (1R)`, inp('riskAmt', riskAmt, 'number', 'num', `step="any" inputmode="decimal" placeholder="${bal == null ? 'set balance in Setup' : ''}"`))}
+        </div>
+        <div id="calcOut"></div>
+        ${fld('why', 'Why this trade? Zone, confluence, trigger', ta('why', t.why, 'e.g. Fresh H4 DBR demand, first retest, 61.8% fib inside zone, bullish engulfing on M15'))}
+        <div class="grid g2" style="gap:24px">
+          <fieldset><legend class="split" style="width:100%;padding-bottom:6px"><span class="lbl">Pre-trade checklist</span><span class="num mut" id="chkScore"></span></legend>
+            ${cl.map((c, i) => `<label class="chk"><input type="checkbox" name="checks" value="${i}" ${(t.checks || []).map(String).includes(String(i)) ? 'checked' : ''}><span>${esc(c)}</span></label>`).join('')}
+          </fieldset>
+          <div class="stack" style="gap:16px"><div id="verdict"></div>
+            <div class="field"><span class="lbl">Emotional state before entry</span>${radios('emotion', ['1', '2', '3', '4', '5'], t.emotion)}<span class="mut" style="font-size:13px">1 calm · 3 impatient · 5 tilted — at 4+ no new trades</span></div>
+          </div>
+        </div>
+        <fieldset data-market="gold" class="fields" ${t.market === 'gold' ? '' : 'hidden'}><legend class="lbl" style="grid-column:1/-1;margin-bottom:4px">Gold details</legend>
+          ${fld('g_news', 'USD news within 30 min', `<select id="g_news" name="g_news" class="in">${optList(['None', 'CPI', 'NFP', 'FOMC', 'PPI', 'Retail sales', 'Fed speaker', 'Other high impact'], t.g_news)}</select>`)}
+          ${fld('g_dxy', 'DXY direction today', `<select id="g_dxy" name="g_dxy" class="in">${optList(['Up', 'Down', 'Flat'], t.g_dxy)}</select>`)}
+          ${fld('g_spread', 'Spread at entry', inp('g_spread', t.g_spread, 'text', 'num'))}
+        </fieldset>
+        <fieldset data-market="fx" class="fields" ${t.market === 'fx' ? '' : 'hidden'}><legend class="lbl" style="grid-column:1/-1;margin-bottom:4px">FX details</legend>
+          ${fld('f_corr', 'Correlated open positions', inp('f_corr', t.f_corr, 'text', '', 'placeholder="none / long GBPUSD"'))}
+          ${fld('f_news', 'News for both currencies', inp('f_news', t.f_news))}
+          ${fld('f_spread', 'Spread (pips)', inp('f_spread', t.f_spread, 'text', 'num'))}
+        </fieldset>
+        <fieldset data-market="crypto" class="fields" ${t.market === 'crypto' ? '' : 'hidden'}><legend class="lbl" style="grid-column:1/-1;margin-bottom:4px">Crypto details</legend>
+          ${fld('c_ex', 'Exchange · contract', inp('c_ex', t.c_ex, 'text', '', 'placeholder="Binance · perpetual"'))}
+          ${fld('c_lev', 'Leverage', inp('c_lev', t.c_lev, 'text', 'num', 'placeholder="5x"'))}
+          ${fld('c_liq', 'Liquidation price', inp('c_liq', t.c_liq, 'text', 'num'))}
+          ${fld('c_fund', 'Funding rate', inp('c_fund', t.c_fund, 'text', 'num', 'placeholder="0.01%"'))}
+          ${fld('c_btc', 'BTC direction', `<select id="c_btc" name="c_btc" class="in">${optList(['Up', 'Down', 'Range', 'Trading BTC itself'], t.c_btc)}</select>`)}
+        </fieldset>
+        <div class="fields wide">
+          ${fld('shot1', 'Screenshot 1 · HTF with zones (link)', inp('shot1', t.shot1, 'url', '', 'placeholder="TradingView snapshot link"'))}
+          ${fld('shot2', 'Screenshot 2 · entry timeframe (link)', inp('shot2', t.shot2, 'url', '', 'placeholder="TradingView snapshot link"'))}
+        </div>
+      </div>
+    </section>
+
+    <section class="card" data-taken ${t.kind === 'missed' ? 'hidden' : ''}>
+      <div class="phase"><span class="n">02</span><h2>During — management</h2><span class="hint">Only what you actually did</span></div>
+      <div class="stack" style="gap:16px">
+        <div class="fields">
+          ${fld('fill', 'Actual fill price', inp('fill', t.fill, 'number', 'num', 'step="any" placeholder="if different from entry"'))}
+          ${fld('size', 'Position size (lots / coins)', inp('size', t.size, 'text', 'num'))}
+          ${fld('be', 'Moved stop to break-even?', `<select id="be" name="be" class="in">${optList(['No', 'Yes — by plan', 'Yes — out of fear'], t.be)}</select>`)}
+          ${fld('widen', 'Widened the stop?', `<select id="widen" name="widen" class="in">${optList(['No', 'Yes'], t.widen)}</select>`)}
+          ${fld('partial', 'Partial close', inp('partial', t.partial, 'text', '', 'placeholder="50% at 1R"'))}
+        </div>
+        ${fld('during', 'What I felt and did while in the trade', ta('during', t.during))}
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="phase"><span class="n">03</span><h2>After — the review</h2><span class="hint" id="afterHint">${t.kind === 'missed' ? 'Where would it have exited? Optional' : 'Within 15 minutes of closing'}</span></div>
+      <div class="stack" style="gap:16px">
+        <div class="fields">
+          ${fld('exit', 'Exit price', inp('exit', t.exit, 'number', 'num', 'step="any" inputmode="decimal"'))}
+          ${fld('closeTime', 'Close time', inp('closeTime', t.closeTime, 'time', 'num'))}
+          ${fld('pnl', `Actual P&amp;L ${esc(st.currency)} (after fees, optional)`, inp('pnl', t.pnl, 'number', 'num', 'step="any" placeholder="use for partial closes"'))}
+          ${fld('exitReason', 'Exit reason', `<select id="exitReason" name="exitReason" class="in">${optList(['Take profit hit', 'Stop loss hit', 'Manual — by plan', 'Manual — emotional', 'Break-even stop', 'Trailing stop'], t.exitReason)}</select>`)}
+          ${fld('mfe', 'Best point reached (R)', inp('mfe', t.mfe, 'number', 'num', 'step="0.1"'))}
+          ${fld('mae', 'Worst point reached (R)', inp('mae', t.mae, 'number', 'num', 'step="0.1"'))}
+        </div>
+        <div id="resultOut"></div>
+        <div class="field" data-taken ${t.kind === 'missed' ? 'hidden' : ''}><span class="lbl">Process grade — how you traded, not whether you won</span>${radios('grade', GRADES, t.grade)}<span class="mut" style="font-size:13px">A+ every rule, top setup · A every rule · B one minor slip · C a rule broken · F impulsive</span></div>
+        <div class="field" data-taken ${t.kind === 'missed' ? 'hidden' : ''}><span class="lbl">Mistake tags — tap all that apply</span>${checks('mistakes', list(st.mistakes), t.mistakes, 'bad')}</div>
+        <div class="fields wide">
+          ${fld('good', 'What I did well', ta('good', t.good))}
+          ${fld('diff', t.kind === 'missed' ? 'Why I didn’t take it' : 'What I would do differently', ta('diff', t.diff))}
+        </div>
+        ${fld('lesson', 'Lesson — one sentence', inp('lesson', t.lesson, 'text', '', 'placeholder="e.g. Second retest of a zone is weaker — only trade the first touch"'))}
+        ${fld('shot3', 'Screenshot 3 · after exit (link)', inp('shot3', t.shot3, 'url', '', 'placeholder="TradingView snapshot link"'))}
+      </div>
+    </section>
+    <div class="split"><div class="row"><button class="btn primary" type="submit">${ed ? 'Save changes' : 'Save trade'}</button><a class="btn" href="#journal">Cancel</a><span class="err" id="formErr" role="alert"></span></div>
+    ${ed ? '<button class="btn danger" type="button" data-act="del-trade">Delete trade</button>' : ''}</div>
+  </form>`;
+};
+
+function readTradeForm(f) {
+  const fd = new FormData(f); const o = {};
+  for (const [k, v] of fd.entries()) { if (k === 'checks' || k === 'mistakes') (o[k] = o[k] || []).push(v); else o[k] = v; }
+  o.checks = o.checks || []; o.mistakes = o.mistakes || [];
+  return o;
+}
+function updateCalc() {
+  const f = $('#tradeForm'); if (!f) return;
+  const o = readTradeForm(f); const c = calc(o); const st = S.settings;
+  const risk = num(o.riskAmt);
+  let sizeL = 'Lots (100 oz/lot)', size = null, note = 'Gold: lots = risk ÷ (stop distance × 100). Check your broker’s contract size.';
+  if (c.dist && risk != null) {
+    if (o.market === 'gold') size = risk / (c.dist * 100);
+    else if (o.market === 'fx') { sizeL = 'Lots (100k units)'; size = risk / c.dist / 100000; note = 'For pairs quoted in USD (EURUSD, GBPUSD, AUDUSD). For JPY and crosses use your broker’s pip value.'; }
+    else { sizeL = 'Position (coins)'; size = risk / c.dist; note = 'Coins = risk ÷ stop distance. Leverage changes margin, not risk — keep liquidation beyond the stop.'; }
+  } else { if (o.market === 'fx') sizeL = 'Lots (100k units)'; if (o.market === 'crypto') sizeL = 'Position (coins)'; }
+  if (o.market === 'fx') note = 'For pairs quoted in USD (EURUSD, GBPUSD, AUDUSD). For JPY and crosses use your broker’s pip value.';
+  if (o.market === 'crypto') note = 'Coins = risk ÷ stop distance. Leverage changes margin, not risk — keep liquidation beyond the stop.';
+  const long = o.dir !== 'short'; const pe = num(o.entry), sp = num(o.stop);
+  const wrong = pe != null && sp != null && (long ? sp >= pe : sp <= pe);
+  $('#calcOut').innerHTML = `${wrong ? `<p class="alert bad" style="margin:0 0 10px">Stop is on the wrong side of entry for a ${long ? 'long' : 'short'}.</p>` : ''}<div class="calc">${tile('Risk (1R)', risk != null ? fMoney(risk) : '—')}${tile('Stop distance', fN(c.dist, o.market === 'fx' ? 5 : 2))}${tile('Planned R:R', fin(c.rr) ? '1 : ' + c.rr.toFixed(2) : '—', !fin(c.rr) ? '' : c.rr >= 2 ? 'pos' : 'neg')}${tile(sizeL, fN(size, o.market === 'crypto' ? 4 : 2))}${tile('Potential profit', fin(c.rr) && risk != null ? fMoney(c.rr * risk) : '—', 'pos')}</div><p class="mut" style="font-size:12px;margin:8px 0 0">${note}</p>`;
+  const cl = list(st.checklist); const n = o.checks.length; const emo = num(o.emotion);
+  $('#chkScore').textContent = n + ' / ' + cl.length;
+  const go = n === cl.length && !(emo >= 4) && !wrong;
+  $('#verdict').innerHTML = o.kind === 'missed' ? `<div class="verdict no" style="background:var(--surface2);border-color:var(--line2)"><span class="lbl">Missed setup</span><span class="big" style="color:var(--soft)">LOGGED ONLY</span><span class="mut" style="font-size:14px">Missed setups are tracked separately and don’t count in your stats.</span></div>`
+    : go ? `<div class="verdict go"><span class="lbl" style="color:var(--ok)">Verdict</span><span class="big">GO</span><span style="font-size:14px;color:var(--soft)">Every box ticked. Screenshot the chart, then place the order.</span></div>`
+    : `<div class="verdict no"><span class="lbl" style="color:var(--neg)">Verdict</span><span class="big">NO TRADE</span><span style="font-size:14px;color:var(--soft)">${emo >= 4 ? 'Emotional state is 4 or higher. ' : ''}Every box must be ticked. If you still want in, log it as a missed setup.</span></div>`;
+  const res = c.r;
+  $('#resultOut').innerHTML = res == null ? '' : `<div class="calc">${tile(o.kind === 'missed' ? 'Would have made' : 'Result', fR(res), tone(res))}${o.kind === 'missed' ? '' : tile('P&L', fM(c.pnl), tone(c.pnl))}${tile('Outcome', c.outcome === 'Missed' ? (res > 0.1 ? 'Win' : res < -0.1 ? 'Loss' : 'BE') : c.outcome, tone(res))}${fin(c.hold) ? tile('Time in trade', Math.floor(c.hold / 60) + 'h ' + (c.hold % 60) + 'm') : ''}</div>`;
+  $$('fieldset[data-market]', f).forEach((fs) => { fs.hidden = fs.dataset.market !== o.market; });
+  $$('[data-taken]', f).forEach((el) => { el.hidden = o.kind === 'missed'; });
+  $('#afterHint').textContent = o.kind === 'missed' ? 'Where would it have exited? Optional' : 'Within 15 minutes of closing';
+  const sl = $('#symlist'); if (sl && sl.dataset.m !== o.market) { sl.dataset.m = o.market; sl.innerHTML = list(st.symbols[o.market] || '').map((s) => `<option value="${esc(s)}">`).join(''); $('#symbol').placeholder = list(st.symbols[o.market] || '')[0] || ''; }
+}
+
+/* --- journal --- */
+V.journal = () => {
+  const F = S.jf; const st = S.settings;
+  let T = S.trades.filter((t) => inPeriod(t, F.period));
+  if (F.market !== 'all') T = T.filter((t) => t.market === F.market);
+  if (F.setup !== 'all') T = T.filter((t) => t.setup === F.setup);
+  if (F.outcome !== 'all') T = T.filter((t) => t._.outcome === F.outcome);
+  T.sort(byTime).reverse();
+  const s = stats(T);
+  return `<div class="page-head"><div><p class="eyebrow">Every trade, newest first</p><h1>Trades</h1><p class="guide">Filter to study one market, setup or outcome. Tap a row to open and finish or edit it.</p></div>
+  <div class="row"><button class="btn" data-act="export">Export CSV</button><a class="btn primary" href="#log">+ Log a trade</a></div></div>
+  <div class="stack">
+  <div class="card"><div class="fields">
+    ${fld('jf_period', 'Period', `<select id="jf_period" class="in" data-jf="period">${optList(PERIODS, F.period, [['today', 'Today']])}</select>`)}
+    ${fld('jf_market', 'Market', `<select id="jf_market" class="in" data-jf="market">${optList(Object.entries(MARKETS), F.market, [['all', 'All markets']])}</select>`)}
+    ${fld('jf_setup', 'Setup', `<select id="jf_setup" class="in" data-jf="setup">${optList(list(st.setups).concat('Other'), F.setup, [['all', 'All setups']])}</select>`)}
+    ${fld('jf_outcome', 'Outcome', `<select id="jf_outcome" class="in" data-jf="outcome">${optList(['Win', 'Loss', 'BE', 'Open', 'Missed'], F.outcome, [['all', 'All outcomes']])}</select>`)}
+  </div></div>
+  ${kpiTiles(s, true)}
+  <section class="card"><div class="card-head"><h2>${T.length} entr${T.length === 1 ? 'y' : 'ies'}</h2><span class="hint">${T.filter((t) => t._.outcome === 'Open').length} open · ${T.filter((t) => t._.missed).length} missed setups</span></div>${tradeRows(T, { empty: S.trades.length ? 'No trades match these filters.' : 'No trades yet — log your first one.' })}</section>
+  </div>`;
+};
+
+/* --- daily --- */
+V.daily = () => {
+  const d = S.day || today(); const doc = S.days[d] || {}; const st = S.settings;
+  const T = S.trades.filter((t) => t.date === d); const s = stats(T);
+  const wl = doc.watch || [{ sym: 'XAUUSD' }, {}, {}, {}];
+  const prevFocus = (S.days[addDays(d, -1)] || {}).tomorrow;
+  return `<div class="page-head"><div><p class="eyebrow">Daily · plan in the morning, recap at night</p><h1>${fDate(d, { weekday: 'long', day: 'numeric', month: 'long' })}</h1>
+  <p class="guide">Part one takes 10 minutes before your first session. Part two takes 10 minutes after your last trade. Your trades for the day appear automatically.</p></div>
+  <div class="weeknav"><button class="btn small" data-act="day-prev" aria-label="Previous day">←</button><input id="dayPick" class="in num" type="date" value="${d}" style="width:170px" aria-label="Choose day"><button class="btn small" data-act="day-next" aria-label="Next day">→</button><button class="btn small" data-act="day-today">Today</button></div></div>
+  <form id="dayForm" class="stack" autocomplete="off">
+  ${prevFocus ? `<div class="alert info"><b>Yesterday you wrote:</b> ${esc(prevFocus)}</div>` : ''}
+  <section class="card">
+    <div class="phase"><span class="n">AM</span><h2>Pre-session plan</h2><span class="hint">Before your first session</span></div>
+    <div class="stack" style="gap:16px">
+      <div class="tiles">${[['Asia (Tokyo)', '03:00–12:00'], ['London', '11:00–20:00'], ['London–NY overlap', '16:00–20:00'], ['New York', '16:00–01:00']].map(([a, b]) => tile(a, b, '', 'EAT')).join('')}</div>
+      <p class="mut" style="font-size:13px;margin:-6px 0 0">East Africa Time, November–March. From late March London and New York open one hour earlier.</p>
+      <div class="fields wide">
+        ${fld('news', 'High-impact news today (time · event)', ta('news', doc.news, 'e.g. 16:30 US CPI — no gold trades 16:00–17:00'))}
+        ${fld('context', 'Market context — DXY, yields, BTC, risk mood', ta('context', doc.context))}
+      </div>
+      <div class="field"><span class="lbl">Watchlist — maximum 4 symbols</span>
+        <div class="tbl-wrap"><table class="tbl" style="min-width:820px"><thead><tr><th style="width:14%">Symbol</th><th style="width:12%">HTF bias</th><th style="width:22%">Key zones</th><th>If … then …</th><th style="width:20%">Invalidation</th></tr></thead><tbody>
+        ${[0, 1, 2, 3].map((i) => { const w = wl[i] || {}; return `<tr><td><input class="in num" name="w_sym_${i}" aria-label="Symbol ${i + 1}" value="${esc(w.sym)}"></td><td><select class="in" name="w_bias_${i}" aria-label="Bias ${i + 1}">${optList(['', 'Bull', 'Bear', 'Range'], w.bias)}</select></td><td><input class="in num" name="w_zone_${i}" aria-label="Zones ${i + 1}" value="${esc(w.zone)}"></td><td><input class="in" name="w_plan_${i}" aria-label="Plan ${i + 1}" value="${esc(w.plan)}" placeholder="${i === 0 ? 'If price retests demand and M15 confirms → long' : ''}"></td><td><input class="in" name="w_inv_${i}" aria-label="Invalidation ${i + 1}" value="${esc(w.inv)}"></td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      <div class="fields">
+        ${fld('emotion', 'Emotional state now (1–5)', `<select id="emotion" name="emotion" class="in">${optList([['', '—'], '1', '2', '3', ['4', '4 — no trading today'], ['5', '5 — no trading today']], doc.emotion)}</select>`)}
+        ${fld('sleep', 'Sleep last night (hours)', inp('sleep', doc.sleep, 'number', 'num', 'step="0.5"'))}
+        ${fld('focus', 'Today’s focus rule', inp('focus', doc.focus ?? prevFocus ?? ''))}
+      </div>
+      <p class="mut" style="font-size:13px;margin:0">Limits from Setup: max ${esc(st.maxTrades)} trades · max −${esc(st.maxDailyLoss)}R · stop after ${esc(st.maxConsec)} losses in a row.</p>
+      <div class="row"><button class="btn primary" type="submit" data-part="plan">Save plan</button>${doc.planDone ? '<span class="okc" style="font-size:14px">Plan saved</span>' : ''}</div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="phase"><span class="n">PM</span><h2>End-of-day recap</h2><span class="hint">After your last trade closes</span></div>
+    <div class="stack" style="gap:16px">
+      <div id="dayLive">${dayLive(d)}</div>
+      <div class="fields wide">
+        ${fld('q_plan', 'Did I follow my plan?', ta('q_plan', doc.q_plan, 'Where did I stick to it, where did I drift?'))}
+        ${fld('q_best', 'Best decision today', ta('q_best', doc.q_best, 'Judge the process, not the profit'))}
+        ${fld('q_worst', 'Worst decision today', ta('q_worst', doc.q_worst, 'Which rule, and what triggered it?'))}
+        ${fld('q_missed', 'Missed setups', ta('q_missed', doc.q_missed, 'Valid setups I didn’t take — and why'))}
+        ${fld('q_feel', 'How did I feel through the day?', ta('q_feel', doc.q_feel, 'Energy, focus, frustration, overconfidence'))}
+        ${fld('q_lesson', 'One lesson', ta('q_lesson', doc.q_lesson))}
+      </div>
+      ${fld('tomorrow', 'Tomorrow I will … (one sentence)', inp('tomorrow', doc.tomorrow, 'text', '', 'placeholder="e.g. Wait for the M15 confirmation candle before entering any gold zone"'))}
+      <div class="row"><button class="btn primary" type="submit" data-part="recap">Save recap</button>${doc.recapDone ? '<span class="okc" style="font-size:14px">Recap saved</span>' : ''}</div>
+    </div>
+  </section></form>`;
+};
+function dayLive(d) {
+  const T = S.trades.filter((t) => t.date === d); const s = stats(T); const st = S.settings;
+  const taken = T.filter((t) => !t._.missed).length;
+  const lim = [];
+  if (num(st.maxTrades)) lim.push(taken <= num(st.maxTrades) ? ['good', `Trades: ${taken} of ${st.maxTrades}`] : ['bad', `Trades: ${taken} — over your limit of ${st.maxTrades}`]);
+  if (num(st.maxDailyLoss)) lim.push(s.net > -Math.abs(num(st.maxDailyLoss)) ? ['good', `Day result ${fR(s.net)} — inside the −${st.maxDailyLoss}R limit`] : ['bad', `Day result ${fR(s.net)} — daily loss limit broken`]);
+  return `<div class="tiles">${tile('Net result', fR(s.net), tone(s.net), fM(s.pnl))}${tile('Trades', taken, '', `${s.w}W · ${s.l}L · ${s.be}BE`)}${tile('Rule adherence', fP(s.adh), s.adh == null ? '' : s.adh >= 0.9 ? 'pos' : 'neg')}${tile('Mistakes', s.mistN, s.mistN ? 'neg' : '', s.mistN ? fR(s.mistR) + ' on those trades' : 'Clean day')}</div>
+  ${lim.length && taken ? `<div class="alerts" style="margin-top:12px">${lim.map(([c, t]) => `<div class="alert ${c}">${t}</div>`).join('')}</div>` : ''}
+  <div style="margin-top:14px">${tradeRows(T.sort(byTime), { empty: 'No trades logged for this day. <a href="#log">Log a trade</a>.', noMist: false })}</div>`;
+}
+
+/* --- weekly --- */
+V.weekly = () => {
+  const ws = S.week || weekStart(today()); const wk = isoWeek(ws); const doc = S.weeks[wk] || {};
+  const prevWk = isoWeek(addDays(ws, -7)); const prevDoc = S.weeks[prevWk] || {};
+  return `<div class="page-head"><div><p class="eyebrow">Weekly review · ${wk}</p><h1>Week of ${fDate(ws, { day: 'numeric', month: 'long', year: 'numeric' })}</h1>
+  <p class="guide">45 minutes at the weekend. The numbers fill in from your trades; you answer the questions and set one focus rule for next week.</p></div>
+  <div class="weeknav"><button class="btn small" data-act="wk-prev" aria-label="Previous week">←</button><span class="cur">${fDate(ws, { day: 'numeric', month: 'short' })} – ${fDate(addDays(ws, 6), { day: 'numeric', month: 'short' })}</span><button class="btn small" data-act="wk-next" aria-label="Next week">→</button><button class="btn small" data-act="wk-now">This week</button></div></div>
+  <form id="weekForm" class="stack" autocomplete="off">
+  <div id="weekLive">${weekLive(ws)}</div>
+  <section class="card"><div class="phase"><span class="n">04</span><h2>Replay the week</h2><span class="hint">Open the screenshots side by side</span></div>
+    <div class="stack" style="gap:16px">
+    ${prevDoc.focus ? `<div class="field"><span class="lbl">Last week’s focus rule: “${esc(prevDoc.focus)}” — did you keep it?</span>${radios('keptFocus', ['Yes, every time', 'Mostly', 'No'], doc.keptFocus)}</div>` : ''}
+    <div class="fields wide">
+      ${fld('wq_pattern', 'Which pattern repeated this week?', ta('wq_pattern', doc.wq_pattern, 'Good or bad — what happened more than once?'))}
+      ${fld('wq_edge', 'Where is my edge right now?', ta('wq_edge', doc.wq_edge, 'Best market, setup and session from the tables above'))}
+      ${fld('wq_leak', 'Where am I leaking?', ta('wq_leak', doc.wq_leak, 'Worst market, setup, session or mistake'))}
+      ${fld('wq_emotion', 'Emotional pattern', ta('wq_emotion', doc.wq_emotion, 'Which days or situations pushed me to 3+?'))}
+      ${fld('wq_strategy', 'Strategy notes to test (not change yet)', ta('wq_strategy', doc.wq_strategy))}
+      ${fld('wq_missed', 'Missed setups review', ta('wq_missed', doc.wq_missed, 'Were they valid? What stopped me?'))}
+    </div>
+    <div class="fields">${fld('stop', 'Stop doing', inp('stop', doc.stop))}${fld('start', 'Start doing', inp('start', doc.start))}${fld('keep', 'Keep doing', inp('keep', doc.keep))}</div>
+    <div style="border:1px solid var(--gold);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:8px">
+      <label class="lbl goldc" for="focus">Next week’s one focus rule</label>${inp('focus', doc.focus, 'text', '', 'style="font-size:17px" placeholder="e.g. No gold entries in the 30 minutes around US data"')}
+      <span class="mut" style="font-size:13px">It shows on your dashboard every day next week.</span></div>
+    <div class="row"><button class="btn primary" type="submit">Save weekly review</button>${doc.done ? '<span class="okc" style="font-size:14px">Review saved</span>' : ''}</div>
+    </div></section>
+  <section class="card"><div class="card-head"><h2>Coach review</h2><span class="hint">Claude reads this week’s trades and your answers</span></div>
+    <div class="stack" style="gap:12px"><p class="mut" style="margin:0;font-size:14px">Get a second opinion on the week: what is working, what is leaking, and one rule to focus on. Save your answers first so they are included.</p>
+    <div class="row"><button class="btn" type="button" data-act="coach">${doc.coach ? 'Run the coach again' : 'Ask the coach'}</button><span id="coachState" class="mut" style="font-size:13px"></span></div>
+    <div id="coachOut" class="coach" ${doc.coach ? '' : 'hidden'}>${esc(doc.coach || '')}</div></div></section>
+  </form>`;
+};
+function weekLive(ws) {
+  const T = S.trades.filter((t) => weekStart(t.date) === ws); const s = stats(T);
+  const prev = stats(S.trades.filter((t) => weekStart(t.date) === addDays(ws, -7)));
+  const delta = (a, b, f) => fin(a) && fin(b) ? `<span class="${a - b >= 0 ? 'pos' : 'neg'}">${a - b >= 0 ? '▲' : '▼'} ${f(Math.abs(a - b))}</span> vs last week` : '';
+  const C = closedOf(T).sort((a, b) => b._.r - a._.r);
+  const graded = C.filter((t) => t.grade).sort((a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade));
+  const missed = T.filter((t) => t._.missed);
+  return `<div class="stack">
+  <section class="card"><div class="phase"><span class="n">01</span><h2>The numbers</h2><span class="hint">${delta(s.net, prev.net, (x) => x.toFixed(2) + 'R')}</span></div>${T.length ? kpiTiles(s) : '<p class="mut" style="margin:0">No trades logged in this week.</p>'}
+  ${T.length ? `<div style="margin-top:16px">${equitySVG(s, 200)}</div>` : ''}${s.mistN ? `<div class="alert bad" style="margin-top:14px">Rule breaks cost ${fR(s.mistR)} this week. Trading only your rules, your result would have been ${fR(s.cleanNet)}.</div>` : ''}</section>
+  <section class="card"><div class="phase"><span class="n">02</span><h2>Where is my edge?</h2></div>
+    <div class="stack" style="gap:18px"><div><p class="sec-title">By market</p>${groupTable(groupBy(T, (t) => MARKETS[t.market] || 'Other'), 'Market')}</div>
+    <div><p class="sec-title">By setup</p>${groupTable(groupBy(T, (t) => t.setup || 'No setup'), 'Setup')}</div>
+    <div><p class="sec-title">By session</p>${groupTable(groupBy(T, (t) => t._.session), 'Session', [...SESSIONS, '—'])}</div>
+    <div><p class="sec-title">By day</p>${groupTable(groupBy(T, (t) => DOW[dowIdx(t.date)]), 'Day', DOW)}</div>
+    <div>${insightsHTML(insights(T))}</div></div></section>
+  <section class="card"><div class="phase"><span class="n">03</span><h2>Cost of mistakes</h2></div>${mistakeTable(T)}</section>
+  <section class="card"><div class="card-head"><h2>Trades to replay</h2><span class="hint">Tap to open with screenshots</span></div>
+    <div class="grid g3">
+      <div><p class="sec-title" style="margin-bottom:8px">Best by result</p>${C.slice(0, 3).map(mini).join('') || '<p class="mut">—</p>'}</div>
+      <div><p class="sec-title" style="margin-bottom:8px">Best by process</p>${graded.slice(0, 3).map(mini).join('') || '<p class="mut">—</p>'}</div>
+      <div><p class="sec-title" style="margin-bottom:8px">Worst by process</p>${graded.slice(-3).reverse().filter((t) => !GOOD_GRADES.includes(t.grade)).map(mini).join('') || '<p class="mut">No C or F trades. Good week.</p>'}</div>
+    </div>${missed.length ? `<p class="mut" style="font-size:13px;margin:12px 0 0">${missed.length} missed setup${missed.length === 1 ? '' : 's'} logged this week — would have netted ${fR(missed.reduce((a, t) => a + (t._.r || 0), 0))}.</p>` : ''}</section></div>`;
+}
+const mini = (t) => `<a class="step" href="#log" data-edit="${esc(t.id)}" style="margin-bottom:8px;align-items:center"><span class="num ${tone(t._.r)}" style="min-width:64px">${fR(t._.r)}</span><span><span class="t">${esc(t.symbol || '—')} · ${esc(t.grade || '—')}</span><br><span class="d">${fDate(t.date)} · ${esc(t.setup || '')}</span></span></a>`;
+
+/* --- monthly --- */
+V.monthly = () => {
+  const mk = S.month || monthKey(today()); const doc = S.months[mk] || {};
+  return `<div class="page-head"><div><p class="eyebrow">Monthly audit</p><h1>${fMonth(mk)}</h1>
+  <p class="guide">90 minutes on the first weekend of the month. Compare with last month, read the decision flags, then write down what you will keep, pause or scale.</p></div>
+  <div class="weeknav"><button class="btn small" data-act="mo-prev" aria-label="Previous month">←</button><span class="cur">${mk}</span><button class="btn small" data-act="mo-next" aria-label="Next month">→</button><button class="btn small" data-act="mo-now">This month</button></div></div>
+  <form id="monthForm" class="stack" autocomplete="off">
+  <div id="monthLive">${monthLive(mk)}</div>
+  <section class="card"><div class="card-head"><h2>Decisions for next month</h2></div><div class="stack" style="gap:14px">
+    <div class="fields wide">${fld('m_keep', 'Keep', ta('m_keep', doc.m_keep, 'Setups, markets, habits that are working'))}${fld('m_pause', 'Pause or drop', ta('m_pause', doc.m_pause))}${fld('m_scale', 'Risk change', ta('m_scale', doc.m_scale, 'Same / cut / raise — and why'))}</div>
+    ${fld('m_goal', 'Process goal for next month', inp('m_goal', doc.m_goal, 'text', '', 'placeholder="e.g. 90%+ rule adherence, zero revenge trades"'))}
+    <div class="row"><button class="btn primary" type="submit">Save monthly audit</button>${doc.done ? '<span class="okc" style="font-size:14px">Audit saved</span>' : ''}</div></div></section>
+  </form>`;
+};
+function monthLive(mk) {
+  const T = S.trades.filter((t) => monthKey(t.date) === mk); const s = stats(T);
+  const pT = S.trades.filter((t) => monthKey(t.date) === addMonths(mk, -1)); const p = stats(pT);
+  const rows = [['Net R', s.net, p.net, fR], ['Trades', s.n, p.n, (x) => String(x)], ['Win rate', s.wr, p.wr, fP], ['Expectancy', s.exp, p.exp, fR], ['Profit factor', s.pf, p.pf, (x) => x === Infinity ? '∞' : fN(x)], ['Max drawdown', s.n ? -s.dd : null, p.n ? -p.dd : null, fR], ['Rule adherence', s.adh, p.adh, fP], ['Cost of mistakes', s.mistR, p.mistR, fR]];
+  const weeks = []; let w = weekStart(mk + '-01'); while (w <= addDays(mk + '-01', 31) && monthKey(w) <= mk) { weeks.push(w); w = addDays(w, 7); }
+  const wk = weeks.map((ws) => ({ key: fDate(ws, { day: 'numeric', month: 'short' }) + ' · ' + isoWeek(ws).slice(5), s: stats(T.filter((t) => weekStart(t.date) === ws)) })).filter((g) => g.s.n);
+  // decision flags (all-time per setup, per market last two months)
+  const allSetups = groupBy(S.trades.filter((t) => t.date <= mk + '-31'), (t) => t.setup || 'No setup');
+  const flags = [];
+  allSetups.forEach((g) => {
+    if (g.s.n < 20) flags.push(['WAIT', 'mut', `${g.key}: ${g.s.n} trades — not enough data yet. Keep logging.`]);
+    else if (g.s.n >= 30 && g.s.exp < 0) flags.push(['PAUSE', 'neg', `${g.key}: ${fR(g.s.exp)} per trade over ${g.s.n} trades. Stop trading it and re-test it.`]);
+    else if (g.s.exp > 0) flags.push(['KEEP', 'pos', `${g.key}: ${fR(g.s.exp)} per trade over ${g.s.n} trades.`]);
+    else flags.push(['WATCH', 'goldc', `${g.key}: ${fR(g.s.exp)} per trade over ${g.s.n} trades. Review at 30.`]);
+  });
+  Object.entries(MARKETS).forEach(([k, l]) => { const a = stats(T.filter((t) => t.market === k)), b = stats(pT.filter((t) => t.market === k)); if (a.n && b.n && a.net < 0 && b.net < 0) flags.push(['DROP', 'neg', `${l}: negative two months in a row (${fR(b.net)}, ${fR(a.net)}). Take it off the watchlist for a month.`]); });
+  const maxDD = num(S.settings.maxDD);
+  if (maxDD && s.dd >= maxDD) flags.push(['CUT RISK', 'neg', `Drawdown reached ${s.dd.toFixed(2)}R (limit ${maxDD}R). Halve risk until a new equity high.`]);
+  if (s.n >= 10 && s.exp > 0 && s.adh >= 0.9) flags.push(['SCALE', 'pos', `Positive expectancy and ${fP(s.adh)} rule adherence. You may raise risk by a small step (at most 0.25%).`]);
+  else if (s.n >= 10) flags.push(['HOLD RISK', 'goldc', `Keep risk the same: scaling needs positive expectancy and 90%+ adherence (now ${fR(s.exp)}, ${fP(s.adh)}).`]);
+  return `<div class="stack">
+  ${T.length ? kpiTiles(s) : '<div class="card"><p class="mut" style="margin:0">No trades logged in this month.</p></div>'}
+  <div class="grid g2">
+    <section class="card"><div class="card-head"><h2>Daily results</h2><span class="hint">Blue = green day, orange = red day</span></div>${calendar(mk, T)}</section>
+    <section class="card"><div class="card-head"><h2>Equity curve</h2></div>${equitySVG(s, 220)}</section>
+  </div>
+  <div class="grid g2">
+    <section class="card"><div class="card-head"><h2>This month vs last</h2></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Metric</th><th class="r">${addMonths(mk, -1)}</th><th class="r">${mk}</th><th class="r">Change</th></tr></thead><tbody>${rows.map(([l, a, b, f]) => { const ch = fin(a) && fin(b) && a !== Infinity && b !== Infinity ? a - b : null; const better = l === 'Max drawdown' || l === 'Cost of mistakes' ? ch >= 0 : ch >= 0; return `<tr><td>${l}</td><td class="r num mut">${f(b)}</td><td class="r num">${f(a)}</td><td class="r num ${ch == null || ch === 0 ? '' : better ? 'pos' : 'neg'}">${ch == null ? '—' : (ch > 0 ? '▲ ' : ch < 0 ? '▼ ' : '') + (l === 'Trades' ? Math.abs(ch) : l === 'Win rate' || l === 'Rule adherence' ? (Math.abs(ch) * 100).toFixed(0) + ' pts' : Math.abs(ch).toFixed(2))}</td></tr>`; }).join('')}</tbody></table></div></section>
+    <section class="card"><div class="card-head"><h2>Decision flags</h2><span class="hint">Setups judged on all trades to date</span></div>${flags.length ? `<div class="stack" style="gap:0">${flags.map(([a, c, t]) => `<div style="display:grid;grid-template-columns:96px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px"><b class="num ${c}" style="font-size:13px">${a}</b><span style="color:var(--soft)">${esc(t)}</span></div>`).join('')}</div>` : '<p class="mut" style="margin:0">Flags appear once you have logged trades.</p>'}</section>
+  </div>
+  <div class="grid g2">
+    <section class="card"><div class="card-head"><h2>Week by week</h2></div>${groupTable(wk.map((g) => ({ key: g.key, s: g.s })), 'Week', wk.map((g) => g.key))}</section>
+    <section class="card"><div class="card-head"><h2>By market</h2></div>${barsBlock(groupBy(T, (t) => MARKETS[t.market] || 'Other'))}<div style="height:16px"></div><h2 style="font-size:18px;margin-bottom:12px">By setup</h2>${barsBlock(groupBy(T, (t) => t.setup || 'No setup'))}</section>
+  </div>
+  <section class="card"><div class="card-head"><h2>Cost of mistakes</h2></div>${mistakeTable(T)}</section>
+  <section class="card"><div class="card-head"><h2>What the numbers say</h2></div>${insightsHTML(insights(T))}</section>
+  </div>`;
+}
+
+/* --- setup --- */
+V.setup = () => {
+  const st = S.settings;
+  return `<div class="page-head"><div><p class="eyebrow">Your rules</p><h1>Setup</h1><p class="guide">Set these once. They drive the risk calculator, the checklist, your tags and the daily limit warnings. Changing a tag name doesn’t rename it on old trades.</p></div></div>
+  <form id="setupForm" class="stack" autocomplete="off">
+  <section class="card"><div class="card-head"><h2>Account and risk</h2></div><div class="fields">
+    ${fld('startBalance', 'Starting balance', inp('startBalance', st.startBalance, 'number', 'num', 'step="any"'))}
+    ${fld('currency', 'Currency symbol', inp('currency', st.currency, 'text', 'num', 'maxlength="4"'))}
+    ${fld('riskPct', 'Default risk per trade %', inp('riskPct', st.riskPct, 'number', 'num', 'step="0.05"'))}
+    ${fld('maxTrades', 'Max trades per day', inp('maxTrades', st.maxTrades, 'number', 'num'))}
+    ${fld('maxDailyLoss', 'Max daily loss (R)', inp('maxDailyLoss', st.maxDailyLoss, 'number', 'num', 'step="0.5"'))}
+    ${fld('maxConsec', 'Stop after losses in a row', inp('maxConsec', st.maxConsec, 'number', 'num'))}
+    ${fld('maxDD', 'Max drawdown before cutting risk (R)', inp('maxDD', st.maxDD, 'number', 'num'))}
+  </div></section>
+  <section class="card"><div class="card-head"><h2>Tags and checklist</h2><span class="hint">One per line</span></div><div class="fields wide">
+    ${fld('setups', 'Setups', ta('setups', list(st.setups).join('\n')))}
+    ${fld('mistakes', 'Mistake tags', ta('mistakes', list(st.mistakes).join('\n')))}
+    ${fld('checklist', 'Pre-trade checklist', ta('checklist', list(st.checklist).join('\n')))}
+  </div></section>
+  <section class="card"><div class="card-head"><h2>Symbols you trade</h2><span class="hint">Comma separated — they appear as suggestions</span></div><div class="fields wide">
+    ${fld('sym_gold', 'Gold', inp('sym_gold', st.symbols.gold))}${fld('sym_fx', 'FX pairs', inp('sym_fx', st.symbols.fx))}${fld('sym_crypto', 'Crypto', inp('sym_crypto', st.symbols.crypto))}
+  </div></section>
+  <div class="row"><button class="btn primary" type="submit">Save setup</button></div>
+  </form>`;
+};
+
+/* ---------- render + routing ---------- */
+const ROUTES = ['dashboard', 'log', 'journal', 'daily', 'weekly', 'monthly', 'setup'];
+function render() {
+  if (S.recovery) { $('#view').innerHTML = `<div class="card" style="max-width:440px;margin:24px auto"><h1 style="font-size:26px;margin-bottom:16px">Set a new password</h1><form id="pwForm" class="stack" style="gap:14px">${fld('newpw', 'New password', '<input id="newpw" name="newpw" class="in" type="password" autocomplete="new-password" minlength="8" required>')}<span class="err" id="pwErr" role="alert"></span><button class="btn primary" type="submit" style="justify-content:center">Save password</button></form></div>`; renderMode(); return; }
+  if (store.mode === 'signedout' || store.mode === 'misconfigured') { $('#view').innerHTML = loginView(); renderMode(); return; }
+  const v = V[S.view] || V.dashboard;
+  $('#view').innerHTML = v();
+  $$('.nav a').forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + S.view ? 'page' : 'false'));
+  if (S.view === 'log') updateCalc();
+  renderMode();
+}
+function refreshLive() {
+  const map = { daily: ['#dayLive', () => dayLive(S.day || today())], weekly: ['#weekLive', () => weekLive(S.week || weekStart(today()))], monthly: ['#monthLive', () => monthLive(S.month || monthKey(today()))] };
+  const m = map[S.view]; if (m && $(m[0])) $(m[0]).innerHTML = m[1]();
+}
+function route() {
+  const h = (location.hash || '').replace('#', '');
+  const v = ROUTES.includes(h) ? h : 'dashboard';
+  if (!S.editIdKeep) S.editId = null;
+  S.editIdKeep = false;
+  S.view = v; S.dirty = false; render(); window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+/* ---------- events ---------- */
+document.addEventListener('input', (e) => {
+  if (e.target.closest('form')) S.dirty = true;
+  if (e.target.closest('#tradeForm')) updateCalc();
+});
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.name === 'period' && !t.closest('form')) { S.period = t.value; render(); return; }
+  if (t.dataset.jf) { S.jf[t.dataset.jf] = t.value; render(); return; }
+  if (t.id === 'dayPick' && t.value) { S.day = t.value; S.dirty = false; render(); return; }
+  if (t.closest('#tradeForm')) {
+    if (t.name === 'riskPct') { const b = balanceNow(); const p = num(t.value); if (b != null && p != null) $('#riskAmt').value = (b * p / 100).toFixed(2); }
+    if (t.name === 'market') S.lastMarket = t.value;
+    updateCalc();
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('tr[data-edit]')) e.target.click(); });
+document.addEventListener('click', async (e) => {
+  const ed = e.target.closest('[data-edit]');
+  if (ed) { e.preventDefault(); S.editId = ed.dataset.edit; S.editIdKeep = true; if (location.hash === '#log') route(); else location.hash = 'log'; return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'demo-on') { S.demo = true; S.trades = makeDemo(); S.period = 'all'; render(); toast('Showing example trades'); }
+  else if (a === 'demo-off') { S.demo = false; S.trades = S.liveTrades || []; render(); }
+  else if (a === 'new-trade') { S.editId = null; render(); }
+  else if (a === 'day-prev') { S.day = addDays(S.day || today(), -1); S.dirty = false; render(); }
+  else if (a === 'day-next') { S.day = addDays(S.day || today(), 1); S.dirty = false; render(); }
+  else if (a === 'day-today') { S.day = today(); S.dirty = false; render(); }
+  else if (a === 'wk-prev') { S.week = addDays(S.week || weekStart(today()), -7); S.dirty = false; render(); }
+  else if (a === 'wk-next') { S.week = addDays(S.week || weekStart(today()), 7); S.dirty = false; render(); }
+  else if (a === 'wk-now') { S.week = weekStart(today()); S.dirty = false; render(); }
+  else if (a === 'mo-prev') { S.month = addMonths(S.month || monthKey(today()), -1); S.dirty = false; render(); }
+  else if (a === 'mo-next') { S.month = addMonths(S.month || monthKey(today()), 1); S.dirty = false; render(); }
+  else if (a === 'mo-now') { S.month = monthKey(today()); S.dirty = false; render(); }
+  else if (a === 'del-trade') {
+    if (b.dataset.armed) { if (await store.remove('trades', S.editId)) { toast('Trade deleted'); S.editId = null; S.dirty = false; location.hash = 'journal'; } }
+    else { b.dataset.armed = '1'; b.textContent = 'Tap again to delete'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Delete trade'; } }, 4000); }
+  }
+  else if (a === 'export') exportCSV(b);
+  else if (a === 'coach') runCoach(b);
+});
+
+document.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.id === 'authForm') { handleAuth(f); return; }
+  if (f.id === 'pwForm') { const pw = f.newpw.value; if (pw.length < 8) { $('#pwErr').textContent = 'Use at least 8 characters.'; return; } const { error } = await sb.auth.updateUser({ password: pw }); if (error) { $('#pwErr').textContent = error.message; return; } S.recovery = false; toast('Password updated'); store.load(); return; }
+  if (f.id === 'tradeForm') {
+    const o = readTradeForm(f); const err = $('#formErr');
+    if (!o.date) { err.textContent = 'Add the trade date.'; return; }
+    if (!o.symbol) { err.textContent = 'Add the symbol.'; $('#symbol').focus(); return; }
+    o.symbol = o.symbol.toUpperCase().trim();
+    err.textContent = '';
+    const id = S.editId || (o.date + '-' + uid());
+    const prev = S.editId ? S.trades.find((t) => t.id === S.editId) : null;
+    const body = { ...(prev ? strip(prev) : {}), ...o, updatedAt: new Date().toISOString() };
+    if (!prev) body.createdAt = body.updatedAt;
+    if (await store.save('trades', id, body)) {
+      if (store.mode === 'cloud') { const t = prep({ id, ...body }); const i = S.liveTrades.findIndex((x) => x.id === id); if (i >= 0) S.liveTrades[i] = t; else S.liveTrades.push(t); S.trades = S.liveTrades; }
+      S.dirty = false; S.editId = id; toast(prev ? 'Trade updated' : 'Trade saved'); render();
+    }
+  } else if (f.id === 'dayForm') {
+    const d = S.day || today(); const fd = new FormData(f); const o = { ...(S.days[d] || {}) };
+    for (const [k, v] of fd.entries()) if (!k.startsWith('w_')) o[k] = v;
+    o.watch = [0, 1, 2, 3].map((i) => ({ sym: fd.get('w_sym_' + i) || '', bias: fd.get('w_bias_' + i) || '', zone: fd.get('w_zone_' + i) || '', plan: fd.get('w_plan_' + i) || '', inv: fd.get('w_inv_' + i) || '' }));
+    const part = e.submitter && e.submitter.dataset.part;
+    if (part === 'plan') o.planDone = true; if (part === 'recap') o.recapDone = true;
+    o.updatedAt = new Date().toISOString();
+    if (await store.save('days', d, o)) { S.days[d] = o; S.dirty = false; toast(part === 'recap' ? 'Recap saved' : 'Plan saved'); render(); }
+  } else if (f.id === 'weekForm') {
+    const wk = isoWeek(S.week || weekStart(today())); const o = { ...(S.weeks[wk] || {}) };
+    for (const [k, v] of new FormData(f).entries()) o[k] = v;
+    o.done = true; o.weekStart = S.week || weekStart(today()); o.updatedAt = new Date().toISOString();
+    if (await store.save('weeks', wk, o)) { S.weeks[wk] = o; S.dirty = false; toast('Weekly review saved'); render(); }
+  } else if (f.id === 'monthForm') {
+    const mk = S.month || monthKey(today()); const o = { ...(S.months[mk] || {}) };
+    for (const [k, v] of new FormData(f).entries()) o[k] = v;
+    o.done = true; o.updatedAt = new Date().toISOString();
+    if (await store.save('months', mk, o)) { S.months[mk] = o; S.dirty = false; toast('Monthly audit saved'); render(); }
+  } else if (f.id === 'setupForm') {
+    const fd = new FormData(f); const o = {};
+    ['startBalance', 'currency', 'riskPct', 'maxTrades', 'maxDailyLoss', 'maxConsec', 'maxDD'].forEach((k) => { o[k] = fd.get(k); });
+    ['setups', 'mistakes', 'checklist'].forEach((k) => { o[k] = list(fd.get(k)); if (!o[k].length) o[k] = DEF[k]; });
+    o.symbols = { gold: fd.get('sym_gold'), fx: fd.get('sym_fx'), crypto: fd.get('sym_crypto') };
+    if (await store.save('config', 'settings', o)) { S.settings = { ...DEF, ...o }; S.dirty = false; toast('Setup saved'); render(); }
+  }
+});
+
+/* ---------- export ---------- */
+function exportCSV() {
+  const cols = ['date', 'openTime', 'closeTime', 'kind', 'market', 'symbol', 'dir', 'setup', 'session', 'htf', 'tf', 'entry', 'stop', 'target', 'fill', 'exit', 'riskPct', 'riskAmt', 'R', 'pnl', 'outcome', 'grade', 'emotion', 'mistakes', 'exitReason', 'mfe', 'mae', 'why', 'lesson', 'shot1', 'shot2', 'shot3'];
+  const q = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const rows = S.trades.slice().sort(byTime).map((t) => cols.map((c) => q(c === 'R' ? (fin(t._.r) ? t._.r.toFixed(3) : '') : c === 'pnl' ? (fin(t._.pnl) ? t._.pnl.toFixed(2) : '') : c === 'outcome' ? t._.outcome : c === 'session' ? t._.session : c === 'mistakes' ? (t.mistakes || []).join('; ') : t[c])).join(','));
+  const blob = new Blob(['﻿' + [cols.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'trade-journal-' + today() + '.csv';
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast('CSV downloaded');
+}
+
+/* ---------- coach ---------- */
+async function runCoach(btn) {
+  const ws = S.week || weekStart(today()); const wk = isoWeek(ws);
+  const T = S.trades.filter((t) => weekStart(t.date) === ws);
+  const out = $('#coachOut'), stEl = $('#coachState');
+  if (!T.length) { stEl.textContent = 'Log some trades for this week first.'; return; }
+  if (S.demo) { stEl.textContent = 'The coach reviews your real trades — exit example mode first.'; return; }
+  if (!store.coachEnabled) { stEl.textContent = 'The coach is off: add ANTHROPIC_API_KEY to the Render service to turn it on.'; return; }
+  const s = stats(T); const doc = S.weeks[wk] || {}; const allS = stats(S.trades);
+  const trades = T.slice().sort(byTime).map((t) => ({ date: t.date, time: t.openTime, market: t.market, symbol: t.symbol, dir: t.dir, setup: t.setup, session: t._.session, plannedRR: fin(t._.rr) ? +t._.rr.toFixed(2) : null, R: fin(t._.r) ? +t._.r.toFixed(2) : null, status: t._.outcome, grade: t.grade, emotion: t.emotion, mistakes: t.mistakes, checklistTicked: (t.checks || []).length, exitReason: t.exitReason, why: t.why, lesson: t.lesson, diff: t.diff }));
+  const summary = { trades: s.n, net: +s.net.toFixed(2), winRate: s.wr, expectancy: s.exp, profitFactor: s.pf === Infinity ? 'inf' : s.pf, avgWin: s.avgW, avgLoss: s.avgL, maxDrawdownR: s.dd, ruleAdherence: s.adh, mistakeTrades: s.mistN, netOnMistakeTrades: s.mistR, allTimeExpectancy: allS.exp, allTimeTrades: allS.n };
+  const answers = ['wq_pattern', 'wq_edge', 'wq_leak', 'wq_emotion', 'wq_strategy', 'wq_missed', 'stop', 'start', 'keep', 'focus', 'keptFocus'].reduce((o, k) => { if (doc[k]) o[k] = doc[k]; return o; }, {});
+  const prompt = `You are a strict but supportive trading performance coach reviewing one week of a retail trader's journal. They trade mainly gold (XAUUSD) with a supply-and-demand zone strategy (RBR/DBR/DBD/RBD zones, entries only on retest), plus some FX pairs and crypto. Results are in R multiples (1R = risk per trade). Process grades: A+/A/B = rules followed, C = rule broken, F = impulsive.
+
+Week ${wk}. Summary: ${JSON.stringify(summary)}
+Trades: ${JSON.stringify(trades)}
+Trader's own review answers: ${JSON.stringify(answers)}
+
+Write a plain-text review (no markdown symbols like # or *; use short headings in capitals and hyphen bullets), at most 300 words, with these sections:
+WHAT WORKED - 2-3 points citing specific trades or numbers.
+WHAT LEAKED - 2-3 points, focusing on process (mistake tags, emotion, grades, cut winners, oversized losses) more than outcomes.
+PATTERNS - anything about sessions, markets, setups or emotional state that the data supports; say plainly if the sample is too small to conclude.
+NEXT WEEK - one focus rule, written as a concrete testable rule.
+Base everything on the data given. Do not invent trades. Do not give financial advice about specific future trades.`;
+  btn.disabled = true; stEl.textContent = 'Reading your week… (about 20 seconds)'; out.hidden = false; out.textContent = '';
+  try {
+    const r = await store.api('/api/coach', { method: 'POST', body: JSON.stringify({ prompt }) });
+    out.textContent = r.text || ''; stEl.textContent = '';
+    const o = { ...(S.weeks[wk] || {}), coach: r.text, weekStart: ws };
+    if (await store.save('weeks', wk, o)) stEl.textContent = 'Saved with this week’s review';
+  } catch (e) { stEl.textContent = e.message; if (!out.textContent) out.hidden = true; }
+  finally { btn.disabled = false; }
+}
+
+/* ---------- auth events ---------- */
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a === 'signout') { await sb.auth.signOut(); location.hash = 'dashboard'; }
+  else if (a === 'auth-toggle') { S.authMode = S.authMode === 'signup' ? 'signin' : 'signup'; render(); }
+  else if (a === 'auth-reset') {
+    const email = ($('#email') || {}).value || ''; const err = $('#authErr');
+    if (!email) { err.textContent = 'Type your email first, then tap “Forgot password?”.'; return; }
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+    err.style.color = error ? '' : 'var(--ok)'; err.textContent = error ? error.message : 'Password reset email sent.';
+  }
+  else if (a === 'retry') store.load();
+});
+
+/* ---------- boot ---------- */
+route();
+store.init();
+})();
+</script>
+</body>
+</html>
