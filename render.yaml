@@ -1,12 +1,12 @@
 # Render Blueprint — Render → New → Blueprint → pick this repo.
+# One web service serves both the journal site (frontend/) and the API (backend/).
 services:
   - type: web
-    name: gold-desk-journal-api
+    name: gold-desk-journal
     runtime: node
-    rootDir: backend
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd backend && npm ci
+    startCommand: cd backend && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_VERSION
@@ -14,8 +14,6 @@ services:
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
-        sync: false
-      - key: FRONTEND_ORIGIN
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false

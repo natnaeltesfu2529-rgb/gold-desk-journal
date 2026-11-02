@@ -3,6 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const {
   PORT = 8080,
@@ -20,23 +22,42 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 const app = express();
 app.set('trust proxy', 1);
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'", SUPABASE_URL],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"]
+    }
+  }
+}));
 app.use(express.json({ limit: '512kb' }));
 
-// CORS: only the deployed frontend (comma-separated list allowed) and localhost for development
+// The site and the API share one origin, so browsers need no CORS for normal use.
+// FRONTEND_ORIGIN (optional, comma-separated) and localhost are allowed for other front ends / development.
 const allowed = FRONTEND_ORIGIN.split(',').map((s) => s.trim().replace(/\/$/, '')).filter(Boolean);
-app.use(cors({
-  origin(origin, cb) {
-    if (!origin) return cb(null, true);
-    if (allowed.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return cb(null, true);
-    return cb(new Error('Origin not allowed'));
-  },
-  methods: ['GET', 'PUT', 'DELETE', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type']
+app.use('/api', cors((req, cb) => {
+  const origin = req.get('origin');
+  const self = `${req.protocol}://${req.get('host')}`;
+  const ok = !origin || origin === self || allowed.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  cb(ok ? null : new Error('Origin not allowed'), { origin: ok, methods: ['GET', 'PUT', 'DELETE', 'POST', 'OPTIONS'], allowedHeaders: ['Authorization', 'Content-Type'] });
 }));
 app.use('/api', rateLimit({ windowMs: 60_000, limit: 240, standardHeaders: 'draft-7', legacyHeaders: false }));
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+// ---- the journal site itself (frontend/), served from this same service
+const WEB_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../frontend');
+app.get('/config.js', (_req, res) => {
+  res.set('Cache-Control', 'no-store').type('application/javascript')
+    .send('window.GDJ_CONFIG = ' + JSON.stringify({ SUPABASE_URL, SUPABASE_ANON_KEY, API_URL: '' }) + ';\n');
+});
+app.use(express.static(WEB_DIR, { index: 'index.html', maxAge: '5m' }));
 
 // ---- auth: every /api route needs the Supabase access token of a signed-in user.
 // Queries run with that token, so Supabase Row Level Security limits them to the user's own rows.
@@ -149,6 +170,8 @@ app.post('/api/coach', coachLimit, async (req, res) => {
     res.json({ text });
   } catch (e) { fail(res, e); }
 });
+
+app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.use((err, _req, res, _next) => {
   if (err?.message === 'Origin not allowed') return res.status(403).json({ error: 'Origin not allowed' });

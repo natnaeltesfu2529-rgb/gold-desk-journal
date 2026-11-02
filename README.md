@@ -4,15 +4,16 @@ A trading journal for gold (XAUUSD), FX pairs and crypto. You plan each day, log
 
 | Part | What it is | Hosted on |
 |---|---|---|
-| `frontend/` | The journal itself, a single static page (HTML/CSS/JS) with Supabase sign-in | **Vercel** |
-| `backend/` | Node + Express API. It checks the signed-in user, reads and writes the journal, and runs the optional AI coach | **Render** |
-| `supabase/` | Postgres tables, with Row Level Security so each user only sees their own data | **Supabase** |
+| `frontend/` | The journal pages (HTML/CSS/JS) with sign-in | **Render**, in one web service |
+| `backend/` | Node + Express. It serves the site and the API, and runs the optional AI coach | **Render**, the same service |
+| `supabase/` | Postgres tables and user accounts, with Row Level Security so each user only sees their own data | **Supabase** (free) |
 
 ```
-Browser ──(Supabase login)──► Supabase Auth
-   │
-   └──(Bearer token)──► Render API ──(same token, RLS)──► Supabase Postgres
-                              └──► Anthropic API (weekly coach, optional)
+Browser ──► Render web service  ──(user's token, RLS)──►  Supabase Postgres
+   │          ├─ /           journal site                      ▲
+   │          ├─ /api/*      journal API                       │
+   │          └─ /api/coach  ──► Anthropic API (optional)      │
+   └──────────(sign in / sign up)──────────────► Supabase Auth ┘
 ```
 
 ## Features
@@ -29,8 +30,6 @@ Browser ──(Supabase login)──► Supabase Auth
 
 ## Deploy
 
-Do the steps in this order. Each step needs a value from the one before it.
-
 ### 1. Supabase (database and login)
 
 1. Create a project at [supabase.com](https://supabase.com). Pick a region close to you and save the database password somewhere safe.
@@ -38,48 +37,37 @@ Do the steps in this order. Each step needs a value from the one before it.
 3. Go to **Project Settings → API** and copy:
    - **Project URL**, which is your `SUPABASE_URL`
    - the **anon public** key, which is your `SUPABASE_ANON_KEY`. Never use the `service_role` key anywhere in this project.
-4. Go to **Authentication → Providers → Email** and make sure Email is turned on. You'll set the Site URL in step 4.
+4. Go to **Authentication → Providers → Email** and make sure Email is turned on.
 
-### 2. Render (backend API)
+### 2. Render (site and API)
 
-1. Go to [render.com](https://render.com) → **New → Blueprint** and connect this GitHub repo. Render reads `render.yaml`.
+1. Go to [render.com](https://render.com) → **New → Blueprint** and connect this GitHub repo. Render reads `render.yaml` and creates one web service.
 2. Fill in the environment variables:
    - `SUPABASE_URL` and `SUPABASE_ANON_KEY` from step 1
-   - `FRONTEND_ORIGIN`: put `http://localhost:5173` for now and replace it in step 4
    - `ANTHROPIC_API_KEY` (optional): turns on the AI weekly coach. Get a key at console.anthropic.com.
-3. Deploy, then open `https://<your-service>.onrender.com/health`. It should show `{"ok":true}`. That address without `/health` is your `API_URL`.
+3. Deploy. Open `https://<your-service>.onrender.com/health` and check it shows `{"ok":true}`. Then open `https://<your-service>.onrender.com`, which is your journal.
 
-> The free Render plan sleeps after about 15 minutes idle, so the first request after that takes 30–60 seconds. If that happens the journal shows a **Retry** button.
+> The free Render plan sleeps after 15 minutes with no visits, so the first load after that takes about a minute.
 
-### 3. Vercel (frontend)
+### 3. Connect the login emails
 
-1. Go to [vercel.com](https://vercel.com) → **Add New → Project** and import this repo.
-2. Set **Root Directory** to `frontend`. The build settings come from `frontend/vercel.json`.
-3. Add these environment variables: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `API_URL` (your Render address, with no slash at the end).
-4. Deploy. Your site is at something like `https://gold-desk-journal.vercel.app`.
+In **Supabase → Authentication → URL Configuration**, set **Site URL** to `https://<your-service>.onrender.com` and add it under **Redirect URLs**. Confirmation and password-reset emails link back there.
 
-### 4. Connect them
-
-1. **Render → Environment:** set `FRONTEND_ORIGIN` to your Vercel URL, then save so Render redeploys.
-2. **Supabase → Authentication → URL Configuration:** set **Site URL** to your Vercel URL and add it under **Redirect URLs**. Confirmation and password-reset emails link back there.
-3. Open the site, create an account, confirm your email, then fill in the **Setup** page first.
+Then open the site, create an account, confirm your email, and fill in the **Setup** page first.
 
 ---
 
 ## Run it locally
 
 ```bash
-# backend
-cd backend && cp .env.example .env   # fill in values; FRONTEND_ORIGIN can stay as-is for localhost
-npm install && npm run dev            # http://localhost:8080
-
-# frontend (another terminal)
-cd frontend && cp config.local.example.js config.local.js   # fill in values
-npm run dev                           # http://localhost:5173
+cd backend
+cp .env.example .env        # fill in SUPABASE_URL and SUPABASE_ANON_KEY
+npm install
+npm run dev                 # open http://localhost:8080
 ```
 
 ## Security notes
 
 - The Supabase **anon** key is meant to be public. Your data is protected by Row Level Security, and the API runs every query with the signed-in user's own token.
-- The API only accepts requests from `FRONTEND_ORIGIN`, limits how often it can be called, and limits the coach to 20 runs per user per hour.
+- The site and API share one origin, with a strict Content Security Policy and rate limits. The coach is limited to 20 runs per user per hour.
 - `ANTHROPIC_API_KEY` stays on the server and is never sent to the browser.

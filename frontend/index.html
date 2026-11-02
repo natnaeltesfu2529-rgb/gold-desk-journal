@@ -381,7 +381,7 @@ const store = {
     return j;
   },
   async init() {
-    if (!sb || !API) { this.mode = 'misconfigured'; render(); return; }
+    if (!sb) { this.mode = 'misconfigured'; render(); return; }
     const { data } = await sb.auth.getSession();
     sb.auth.onAuthStateChange((evt, session) => {
       if (evt === 'PASSWORD_RECOVERY') { S.recovery = true; render(); return; }
@@ -442,7 +442,7 @@ function renderMode() {
 }
 
 function loginView() {
-  if (store.mode === 'misconfigured') return `<div class="card empty"><h2>Setup needed</h2><p>This deployment is missing SUPABASE_URL, SUPABASE_ANON_KEY or API_URL. Add them in Vercel → Settings → Environment Variables and redeploy.</p></div>`;
+  if (store.mode === 'misconfigured') return `<div class="card empty"><h2>Setup needed</h2><p>This deployment is missing SUPABASE_URL or SUPABASE_ANON_KEY. Add them in Render → your service → Environment, then redeploy.</p></div>`;
   const signup = S.authMode === 'signup';
   return `<div class="card" style="max-width:440px;margin:24px auto">
     <p class="eyebrow">Gold · FX · Crypto</p><h1 style="font-size:28px;margin-bottom:6px">${signup ? 'Create your journal' : 'Sign in'}</h1>
