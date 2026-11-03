@@ -92,14 +92,15 @@ const KV = {
 // GET everything for the signed-in user in one call
 app.get('/api/journal', async (req, res) => {
   const sb = req.sb;
-  const [t, d, w, m, s] = await Promise.all([
+  const [t, d, w, m, s, e] = await Promise.all([
     sb.from('trades').select('id,data').order('trade_date', { ascending: true }).limit(10000),
     sb.from('journal_days').select('day,data'),
     sb.from('journal_weeks').select('week,data'),
     sb.from('journal_months').select('month,data'),
-    sb.from('settings').select('data').maybeSingle()
+    sb.from('settings').select('data').maybeSingle(),
+    sb.from('entries').select('kind,id,data').limit(10000)
   ]);
-  const err = t.error || d.error || w.error || m.error || s.error;
+  const err = t.error || d.error || w.error || m.error || s.error || e.error;
   if (err) return fail(res, err);
   const toMap = (rows, k) => Object.fromEntries((rows || []).map((r) => [r[k], r.data]));
   res.json({
@@ -107,7 +108,8 @@ app.get('/api/journal', async (req, res) => {
     days: toMap(d.data, 'day'),
     weeks: toMap(w.data, 'week'),
     months: toMap(m.data, 'month'),
-    settings: s.data?.data || null
+    settings: s.data?.data || null,
+    entries: (e.data || []).reduce((o, r) => { (o[r.kind] = o[r.kind] || {})[r.id] = r.data; return o; }, {})
   });
 });
 
@@ -126,6 +128,47 @@ app.put('/api/trades/:id', async (req, res) => {
 app.delete('/api/trades/:id', async (req, res) => {
   if (!okId(req.params.id)) return fail(res, 'Invalid id', 400);
   const { error } = await req.sb.from('trades').delete().eq('user_id', req.user.id).eq('id', req.params.id);
+  if (error) return fail(res, error);
+  res.json({ ok: true });
+});
+
+// rename (or remove) a tag across all of the user's trades: field = setup | mistakes | tags | symbol
+app.post('/api/trades/rename', async (req, res) => {
+  const { field, from, to } = req.body || {};
+  if (!['setup', 'mistakes', 'tags', 'symbol'].includes(field) || typeof from !== 'string' || !from || (to != null && typeof to !== 'string')) return fail(res, 'Invalid rename', 400);
+  const { data: rows, error } = await req.sb.from('trades').select('id,trade_date,data').limit(10000);
+  if (error) return fail(res, error);
+  const changed = [];
+  for (const r of rows || []) {
+    const d = { ...r.data }; let hit = false;
+    if (field === 'setup' || field === 'symbol') { if (d[field] === from) { d[field] = to || ''; hit = true; } }
+    else if (Array.isArray(d[field]) && d[field].includes(from)) {
+      d[field] = Array.from(new Set(d[field].map((x) => (x === from ? to : x)).filter(Boolean))); hit = true;
+    }
+    if (hit) changed.push({ id: r.id, user_id: req.user.id, trade_date: r.trade_date, data: d, updated_at: new Date().toISOString() });
+  }
+  if (changed.length) {
+    const { error: e2 } = await req.sb.from('trades').upsert(changed, { onConflict: 'user_id,id' });
+    if (e2) return fail(res, e2);
+  }
+  res.json({ ok: true, updated: changed.length });
+});
+
+// playbook / lesson / habit / study entries
+const KINDS = ['playbook', 'lesson', 'habit', 'study'];
+app.put('/api/entries/:kind/:id', async (req, res) => {
+  const { kind, id } = req.params;
+  if (!KINDS.includes(kind) || !okId(id) || !isObj(req.body)) return fail(res, 'Invalid entry', 400);
+  const { error } = await req.sb.from('entries').upsert({
+    user_id: req.user.id, kind, id, data: req.body, updated_at: new Date().toISOString()
+  }, { onConflict: 'user_id,kind,id' });
+  if (error) return fail(res, error);
+  res.json({ ok: true });
+});
+app.delete('/api/entries/:kind/:id', async (req, res) => {
+  const { kind, id } = req.params;
+  if (!KINDS.includes(kind) || !okId(id)) return fail(res, 'Invalid entry', 400);
+  const { error } = await req.sb.from('entries').delete().eq('user_id', req.user.id).eq('kind', kind).eq('id', id);
   if (error) return fail(res, error);
   res.json({ ok: true });
 });

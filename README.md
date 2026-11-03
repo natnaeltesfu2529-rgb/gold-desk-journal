@@ -25,6 +25,14 @@ Browser ──► Render web service  ──(user's token, RLS)──►  Supaba
 - **Monthly:** a calendar of green and red days, this month against last month, week-by-week results, and keep / pause / drop / scale flags.
 - **Setup:** your starting balance, risk %, limits, setups, mistake tags, checklist and symbols.
 - Export all trades to CSV.
+- **Filters:** narrow the Dashboard and Trades pages by date range, market, symbol, setup, session, direction, outcome, grade, mistake, #tag or emotional state, or search all your notes.
+- **Habits:** starter habits for your trading routine, mind & body and learning, or your own. Some tick themselves from your trades. Includes streaks, a 30-day grid, and your R on days you kept each habit compared with days you didn't.
+- **Diary:** a free-writing entry for each day with title, mood and tags, all searchable, plus your results by mood.
+- **Playbook:** written rules for each setup, with live stats, backtest vs live results, and the trades that used it. The rules show in the trade log when you pick that setup.
+- **Lessons:** every lesson from trades, recaps, weekly reviews, study sessions and your own notes in one place, searchable and pinnable.
+- **Study:** log lessons, backtests and chart reviews, with study time per week.
+- **Progress:** learning-curve charts (rolling expectancy, win rate, rule adherence, mistake rate), your first trades against your latest, plus XP levels and badges.
+- **Setup lists:** add, rename, reorder or remove setups, mistakes, tags and checklist items. Renames update your past trades.
 
 ---
 
@@ -33,7 +41,7 @@ Browser ──► Render web service  ──(user's token, RLS)──►  Supaba
 ### 1. Supabase (database and login)
 
 1. Create a project at [supabase.com](https://supabase.com). Pick a region close to you and save the database password somewhere safe.
-2. Go to **SQL Editor → New query**, paste in all of `supabase/schema.sql` and click **Run**.
+2. Go to **SQL Editor → New query**, paste in all of `supabase/schema.sql` and click **Run**. Then do the same for each file in `supabase/migrations/`, in number order.
 3. Go to **Project Settings → API** and copy:
    - **Project URL**, which is your `SUPABASE_URL`
    - the **anon public** key, which is your `SUPABASE_ANON_KEY`. Never use the `service_role` key anywhere in this project.
